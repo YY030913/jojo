@@ -354,11 +354,11 @@ class BaiduPanSpider(object):
 				time_stamp=int(time.time())
 				if user['pubshare_count']>0:
 					self.db.execute(
-						"INSERT INTO share_users (uk,user_name,avatar_url,intro,follow_count,album_count,fens_count,pubshare_count,last_visited,create_time,weight) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+						"REPLACE INTO share_users (uk,user_name,avatar_url,intro,follow_count,album_count,fens_count,pubshare_count,last_visited,create_time,weight) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
 						(user['hot_uk'],user['hot_uname'],user['avatar_url'],user['intro'],user['follow_count'],user['album_count'],user['fans_count'],user['pubshare_count'],time_stamp,time_stamp,5)
 					)
 					uid=self.db.last_row_id()
-					self.db.execute("INSERT INTO spider_list (uk,uid) VALUES(%s,%s)",(user['hot_uk'],uid))
+					self.db.execute("REPLACE INTO spider_list (uk,uid) VALUES(%s,%s)",(user['hot_uk'],uid))
 		except:
 			traceback.print_exc()
 			self.db.rollback()
@@ -465,7 +465,7 @@ class BaiduPanSpider(object):
 
 
 									self.db.execute(
-										"INSERT INTO share_file (title,uk,shareid,shorturl,isdir,size,md5,ext,feed_time,create_time,file_type,uid,feed_type,cover_img,douban_url) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+										"REPLACE INTO share_file (title,uk,shareid,shorturl,isdir,size,md5,ext,feed_time,create_time,file_type,uid,feed_type,cover_img,douban_url) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
 										(file['title'],file['uk'],file['shareid'],file['shorturl'],file['isdir'],
 										file['size'],file['md5'],ext,file['feed_time'],time_stamp,file_type_i,share_user['uid'],
 										file['feed_type'],file_cover_img,douban_url)
@@ -508,14 +508,14 @@ class BaiduPanSpider(object):
 								continue
 							time_stamp=int(time.time())
 							self.db.execute(
-								"INSERT INTO share_users (uk,user_name,avatar_url,intro,follow_count,album_count,fens_count,pubshare_count,last_visited,create_time,weight) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+								"REPLACE INTO share_users (uk,user_name,avatar_url,intro,follow_count,album_count,fens_count,pubshare_count,last_visited,create_time,weight) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
 								(
 									follow['follow_uk'],follow['follow_uname'],follow['avatar_url'],follow['intro'],follow['follow_count'],
 									follow['album_count'],follow['fans_count'],follow['pubshare_count'],time_stamp,time_stamp,5
 								)
 							)
 							#将获取的新分享者加入爬取列表
-							self.db.execute("INSERT INTO spider_list (uk,uid) VALUES(%s,%s)",(follow['follow_uk'],self.db.last_row_id()))
+							self.db.execute("REPLACE INTO spider_list (uk,uid) VALUES(%s,%s)",(follow['follow_uk'],self.db.last_row_id()))
 					except:
 						share_user['follow_done']=0
 						self.db.rollback()
