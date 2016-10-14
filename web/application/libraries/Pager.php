@@ -136,10 +136,10 @@ EOD;
 
             {   
                        if($i==$this->pageIndex)   
-                       {    $currnt=" class='current'";}   
+                       {    $currnt=" class='active'";}   
                        else  
                        {    $currnt="";    }   
-                        $str .="<li><a href='{$this->pageUrl}={$i} ' {$currnt}>$i</a></li>"."\n" ;   
+                        $str .="<li {$currnt}><a href='{$this->pageUrl}={$i} '>$i</a></li>"."\n" ;   
             }   
          }else                                //10页以上   
          {   if($this->pageIndex<3)  //当前页小于3   
@@ -147,13 +147,13 @@ EOD;
                      for($i=1;$i<=3;$i++)   
                      {   
                          if($i==$this->pageIndex)   
-                           {    $currnt=" class='current'";}   
+                           {    $currnt=" class='active'";}   
                          else  
                          {    $currnt="";    }   
-                        $str .="<li><a href='{$this->pageUrl}={$i} ' {$currnt}>$i</a></li>"."\n" ;   
+                        $str .="<li {$currnt}><a href='{$this->pageUrl}={$i} '>$i</a></li>"."\n" ;   
                      }   
 
-                     $str.="<span class=\"dot\">……</span>"."\n";   
+                     $str.="<li><span class=\"dot\">……</span></li>"."\n";   
 
                  for($i=$this->totalPagesCount-3+1;$i<=$this->totalPagesCount;$i++)//功能1   
                  {   
@@ -165,10 +165,10 @@ EOD;
                  for($i=1;$i<=($this->pageIndex+1);$i++)   
                  {   
                       if($i==$this->pageIndex)   
-                       {    $currnt=" class='current'";}   
+                       {    $currnt=" class='active'";}   
                        else  
                        {    $currnt="";    }   
-                        $str .="<li><a href='{$this->pageUrl}={$i} ' {$currnt}>$i</a></li>"."\n" ;   
+                        $str .="<li {$currnt}><a href='{$this->pageUrl}={$i} '>$i</a></li>"."\n" ;   
 
                  }   
                  $str.="<span class=\"dot\">……</span>"."\n";   
@@ -191,10 +191,10 @@ EOD;
                  for($i=$this->pageIndex-1 ;$i<=$this->pageIndex+1 && $i<=$this->totalPagesCount-5+1;$i++)   
                  {   
                        if($i==$this->pageIndex)   
-                       {    $currnt=" class='current'";}   
+                       {    $currnt=" class='active'";}   
                        else  
                        {    $currnt="";    }   
-                        $str .="<li><a href='{$this->pageUrl}={$i} ' {$currnt}>$i</a></li>"."\n" ;   
+                        $str .="<li {$currnt}><a href='{$this->pageUrl}={$i} '>$i</a></li>"."\n" ;   
                  }   
                  $str.="<span class=\"dot\">……</span>";   
 
@@ -215,10 +215,10 @@ EOD;
                   for($i=$this->totalPagesCount-5;$i<=$this->totalPagesCount;$i++)//功能1   
                  {   
                        if($i==$this->pageIndex)   
-                       {    $currnt=" class='current'";}   
+                       {    $currnt=" class='active'";}   
                        else  
                        {    $currnt="";    }   
-                        $str .="<li><a href='{$this->pageUrl}={$i} ' {$currnt}>$i</a></li>"."\n" ;   
+                        $str .="<li {$currnt}><a href='{$this->pageUrl}={$i} '>$i</a></li>"."\n" ;   
 
                  }   
             }          
