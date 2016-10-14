@@ -18,6 +18,16 @@ echo link_tag('static/css/style.css?v=1.0');
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=yes">
 <meta name="HandheldFriendly" content="true">
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?0b0403754be5d139c1b39a5f2db5ddcd";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
 </head>
 <body>
 <nav class="navbar navbar-inverse navbar-fixed-top" style="font-size:13px">
