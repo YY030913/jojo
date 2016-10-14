@@ -51,9 +51,12 @@ class Pager {
   private function _getPageUrl() {   
         $CurrentUrl = $_SERVER["REQUEST_URI"];   
         $arrUrl     = parse_url($CurrentUrl);   
-        $urlQuery   = $arrUrl["query"];   
+        if(isset($arrUrl["query"])){
+          $urlQuery   = $arrUrl["query"];   
+        }
+        
 
-        if($urlQuery){   
+        if(isset($urlQuery)){   
             $urlQuery  = preg_replace("/(^|&)page=" . $this->pageIndex."/", "", $urlQuery);   
             $CurrentUrl = str_replace($arrUrl["query"], $urlQuery, $CurrentUrl);   
 
