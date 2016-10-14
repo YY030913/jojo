@@ -65,6 +65,9 @@ class Welcome extends CI_Controller {
   //   	$data['ambs']		= $this->_getFiles(0,2);
 		$page = 0;
 		if(isset($_GET['page'])){
+			if ($_GET['page']<1) {
+				$_GET['page']=1
+			}
 			$page=$_GET['page']-1;
 		}
     	$data['videos'] = $this->_getFilesPage($page);
@@ -82,6 +85,9 @@ class Welcome extends CI_Controller {
 	}
 
 	private function _getFilesPage($page=0){
+		if ($page<0) {
+			$page=0
+		}
 		$start=$page*10;
 		$limit = "limit $start,10";
     	$order = 'order by feed_time desc';

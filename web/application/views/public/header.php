@@ -27,7 +27,7 @@ echo link_tag('static/css/style.css?v=1.0');
     height: 50px;
     padding: 15px 15px;
     font-size: 18px;
-    line-height: 20px;color: #fff;" href="<?php echo site_url() ?>" title="返回网盘搜索">谁才是JOJO</a>
+    line-height: 20px;color: #fff;" href="<?php echo site_url() ?>" title="返回网盘搜索">谁是百度</a>
         <button style="height: 50px;" type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
           <span class="sr-only">Toggle navigation</span>
           <span class="icon-bar"></span>

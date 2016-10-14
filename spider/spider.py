@@ -422,7 +422,7 @@ class BaiduPanSpider(object):
 							time_stamp=int(time.time())
 							if file['feed_time']>(time_stamp-3600*48):
 								if file_type_i==0 or file_type_i==-1:
-									query=file['title']
+									query=file['title'].encode('utf-8')
 									#indexOf javascript
 									dotinex=query.find(".")
 									if dotinex!=-1:
