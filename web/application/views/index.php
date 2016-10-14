@@ -30,7 +30,7 @@ td,th{ white-space:nowrap;text-overflow:ellipsis; overflow:hidden;max-width:100p
 	<div class="row">
 		<div class="col-md-12">
 			<div class="panel panel-default">
-			  <div class="panel-heading">电影</div>
+			  <div class="panel-heading">影视</div>
 			  <div class="panel-body">
 			  	<table class="table">
 					<tr>
