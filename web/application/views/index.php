@@ -3,6 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 load_template('public/header',array(
   'title'        => '最近收录列表'
 ));
+date_default_timezone_set("PRC");
 ?>
 <style>
 #top-search-bar{border-collapse:separate;border-spacing:2px;background:#f1f1f1;border-bottom:1px solid #e5e5e5;padding:10px 0;position:relative;}
