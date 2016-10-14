@@ -171,7 +171,7 @@ EOD;
                         $str .="<li {$currnt}><a href='{$this->pageUrl}={$i} '>$i</a></li>"."\n" ;   
 
                  }   
-                 $str.="<span class=\"dot\">……</span>"."\n";   
+                 $str.="<li><span class=\"dot\">……</span></li>"."\n";   
 
                  for($i=$this->totalPagesCount-3+1;$i<=$this->totalPagesCount;$i++)//功能1   
                  {   
@@ -187,7 +187,7 @@ EOD;
                  {   
                      $str .="<li><a href='{$this->pageUrl}={$i}' >$i</a></li>"."\n" ;   
                  }   
-                  $str.="<span class=\"dot\">……</span>";                
+                  $str.="<li><span class=\"dot\">……</span></li>";                
                  for($i=$this->pageIndex-1 ;$i<=$this->pageIndex+1 && $i<=$this->totalPagesCount-5+1;$i++)   
                  {   
                        if($i==$this->pageIndex)   
@@ -196,7 +196,7 @@ EOD;
                        {    $currnt="";    }   
                         $str .="<li {$currnt}><a href='{$this->pageUrl}={$i} '>$i</a></li>"."\n" ;   
                  }   
-                 $str.="<span class=\"dot\">……</span>";   
+                 $str.="<li><span class=\"dot\">……</span></li>";   
 
                  for($i=$this->totalPagesCount-3+1;$i<=$this->totalPagesCount;$i++)   
                  {   
@@ -210,7 +210,7 @@ EOD;
                  {   
                      $str .="<li><a href='{$this->pageUrl}={$i}' >$i</a></li>"."\n" ;   
                  }   
-                  $str.="<span class=\"dot\">……</span>"."\n";   
+                  $str.="<li><span class=\"dot\">……</span></li>"."\n";   
 
                   for($i=$this->totalPagesCount-5;$i<=$this->totalPagesCount;$i++)//功能1   
                  {   
