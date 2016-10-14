@@ -3,6 +3,9 @@ import urllib2,re,argparse,json,time
 import MySQLdb as mdb
 import metautils,traceback,Queue,socket
 from HTMLParser import HTMLParser
+import ssl
+
+ssl._create_default_https_context = ssl._create_unverified_context
 
 DB_HOST='127.0.0.1'
 DB_PORT='3306'
@@ -422,8 +425,7 @@ class BaiduPanSpider(object):
 							time_stamp=int(time.time())
 							if file['feed_time']>(time_stamp-3600*48):
 								if file_type_i==0 or file_type_i==-1:
-									print file['title']
-									query=file['title'].encode('utf-8')
+									query=file['title']
 									#indexOf javascript
 									dotinex=query.find(".")
 									if dotinex!=-1:
