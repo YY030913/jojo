@@ -20,6 +20,7 @@ ERR_NO=0#正常
 ERR_REFUSE=1#爬虫爬取速度过快，被拒绝
 ERR_EX=2#未知错误
 
+
 def getHtml(url,ref=None,reget=5):
 	try:
 		request = urllib2.Request(url)
@@ -45,49 +46,23 @@ class mtimeDataParser(HTMLParser):
 	def __init__(self):
 		HTMLParser.__init__(self)
 		self.findUpCommingSlid = False
-		self.findIWantMovie = False
-		self.findCoverImg = False
-		self.findScore = False
-		self.findFilmScore = False
+		self.data = ""
 	#moreRegion li > img src/.filmscore p
 	def handle_starttag(self, tag, attrs):
-		print tag
-		if tag == 'ul':
+		if tag == 'strong':
 			for (key, value) in attrs:
-				if key == 'id' and value == 'moreRegion':
+				if key == 'class' and value == 'll rating_num':
 					self.findUpCommingSlid = True
 					print "findUpCommingSlid"
 					print self.findUpCommingSlid
-		if self.findUpCommingSlid and tag == 'li':
-			self.findIWantMovie = True
-			print "findIWantMovie"
-		if self.findIWantMovie and tag == 'div':
-			for (key, value) in attrs:
-				if key == 'class' and value == 'filmscore':
-					self.findFilmScore = True
-		if self.findFilmScore and tag == 'p':
-			self.findScore = True
-			print "findScore"
-		if self.findIWantMovie and tag == 'img':
-			self.findCoverImg = True
 
 	def handle_data(self, data):
-		if self.findScore:
-			print data
-		if self.findCoverImg:
-			print data
+		if self.findUpCommingSlid:
+			self.data=data
 
 	def handle_endtag(self, tag):
-		if self.findUpCommingSlid and tag == 'ul':
+		if self.findUpCommingSlid and tag == 'strong':
 			self.findUpCommingSlid = False
-		if self.findIWantMovie and tag == 'li':
-			self.findIWantMovie = False
-		if self.findFilmScore and tag == "div":
-			self.findFilmScore = False
-		if self.findScore and tag == 'p':
-			self.findScore = False
-		if self.findCoverImg and tag == 'img':
-			self.findCoverImg = False
 
 class Db(object):
 	def __init__(self):
@@ -417,6 +392,7 @@ class BaiduPanSpider(object):
 							file_type=''
 							file_cover_img=''
 							douban_url=''
+							douban_score=''
 							file_type_i=-1
 							if file['isdir']==0 and file['feed_type']=='share':
 								ext = metautils.get_extension(file['title']).lower()
@@ -427,13 +403,7 @@ class BaiduPanSpider(object):
 								if file_type_i==0 or file_type_i==-1:
 									query=file['title']
 									#indexOf javascript
-									dotinex=query.find(".")
-									if dotinex!=-1:
-										##substr javascript
-										query=query[0:dotinex]
-									blankinex=query.find(" ")
-									if blankinex!=-1:
-										query=query[0:blankinex]
+									
 									bracketkinex=query.find(")")
 									if bracketkinex!=-1:
 										query=query[bracketkinex]
@@ -449,6 +419,13 @@ class BaiduPanSpider(object):
 									bracketkinex=query.find("：")
 									if bracketkinex!=-1:
 										query=query[0:bracketkinex]
+									dotinex=query.find(".")
+									if dotinex!=-1:
+										##substr javascript
+										query=query[0:dotinex]
+									blankinex=query.find(" ")
+									if blankinex!=-1:
+										query=query[0:blankinex]
 									print query
 									follows_json=json.loads(getHtml("https://movie.douban.com/j/subject_suggest?q="+query))
 									if len(follows_json)>0:
@@ -456,19 +433,24 @@ class BaiduPanSpider(object):
 											file_cover_img = follows_json[0]['img']
 										if follows_json[0]['url']!=0:
 											douban_url = follows_json[0]['url']
-									#opener = urllib2.urlopen("http://search.mtime.com/search/?q="+query)
-									#self.content = opener.read()
 									
-									#parser = mtimeDataParser()
-									#parser.feed(self.content.decode('utf-8'))
-									#parser.close()
+									if douban_url!='':
+										opener = urllib2.urlopen(douban_url)
+										self.content = opener.read()
+										
+										parser = mtimeDataParser()
+										parser.feed(self.content.decode('utf-8'))
+										print parser.data
+										douban_score=parser.data
+										parser.close()
+										
 
 
 									self.db.execute(
-										"REPLACE INTO share_file (title,uk,shareid,shorturl,isdir,size,md5,ext,feed_time,create_time,file_type,uid,feed_type,cover_img,douban_url) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+										"REPLACE INTO share_file (title,uk,shareid,shorturl,isdir,size,md5,ext,feed_time,create_time,file_type,uid,feed_type,cover_img,douban_url,douban_score) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
 										(file['title'],file['uk'],file['shareid'],file['shorturl'],file['isdir'],
 										file['size'],file['md5'],ext,file['feed_time'],time_stamp,file_type_i,share_user['uid'],
-										file['feed_type'],file_cover_img,douban_url)
+										file['feed_type'],file_cover_img,douban_url,douban_score)
 									)
 					except:
 						share_user['file_done']=0

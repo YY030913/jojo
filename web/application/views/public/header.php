@@ -3,7 +3,7 @@
 <head>
 <?php
 if(isset($title))
-  echo "<title>".htmlspecialchars($title)."</title>";
+  echo "<title>".htmlspecialchars($title)."|网盘资源|豆瓣电影评分|在线观看</title>";
 else
   echo "<title>".$this->config->item('site_title')."</title>";   
 
@@ -48,15 +48,7 @@ var _hmt = _hmt || [];
 
       <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
         <ul class="nav navbar-nav">
-          <!-- <li class="web-s"><a href="http://whatsoo.com">网页</a></li>
-          <li class="pan-s active"><a href="http://pan.whatsoo.com">百度云盘</a></li>
-          <li class="bt-s"><a href="http://bt.whatsoo.com">BT磁力</a></li>
-          <li class="pdf-s"><a title="BT种子搜索" href="http://whatsoo.com?type=pdf">电子书</a></li>
-          <li><a id="fulls" href="#">开启全屏</a></li> -->
         </ul>
-        <!-- <ul class="nav navbar-nav navbar-right">
-          <li><a title="Google镜像导航，不翻墙也能用Google" href="http://whatsoo.com/jx">Google镜像导航</a></li>
-        </ul> -->
-      </div><!-- /.navbar-collapse -->
-    </div><!-- /.container-fluid -->
+      </div>
+    </div>
 </nav>

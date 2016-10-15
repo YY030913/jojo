@@ -1,7 +1,7 @@
 <?php 
 defined('BASEPATH') OR exit('No direct script access allowed');
 load_template('public/header',array(
-  'title'        => '最近收录列表'
+  'title'        => $title
 ));
 date_default_timezone_set("PRC");
 ?>
@@ -15,18 +15,7 @@ body{font-family: arial,sans-serif;}
 #search-bar a{padding:5px 10px;margin-right:5px;}
 td,th{ white-space:nowrap;text-overflow:ellipsis; overflow:hidden;max-width:100px}
 </style>
-<!-- <div id="top-search-bar">
-	<a id="logo" href="<?php echo site_url() ?>" title="返回网盘搜索"></a>
-    <div class="container">
-    	<div class="row">
-        	<div class="col-lg-7">
-        		<?php load_template('public/search-form','type=all'); ?>
-          	</div>  
-        </div>
-    </div>
-</div> -->
 <div class="container" style="margin-top: 30px">
-	<!-- <p class="text-danger text-center" style="margin-top:10px;">60分钟更新一次，本次更新时间:<?php echo date("Y-m-d h:i:s") ?></p> -->
 	<div class="row">
 		<div class="col-md-12">
 			<div class="panel panel-default">
@@ -36,11 +25,13 @@ td,th{ white-space:nowrap;text-overflow:ellipsis; overflow:hidden;max-width:100p
 					<tr>
 						<th>标题</th>
 						<th>分享时间</th>
+						<th>豆瓣评分</th>
 					</tr>
 					<?php foreach($videos as $i):?>
 						<tr>
-							<td><a target="_blank" href="<?php echo $i['link']?>"><img src="<?php echo $i['cover_img']?>"><?php echo $i['title']?></a></td>
+							<td><a target="_blank" href="<?php echo $i['link']?>"><img src="<?php echo $i['cover_img']?>"><h1><?php echo $i['title']?></h1></a></td>
 							<td><?php echo timeago($i['feed_time']) ?></td>
+							<td><a arget="_blank" href="<?php echo $i['douban_url']?>"><?php echo ($i['douban_score']) ?></a></td>
 						</tr>
 					<?php endforeach; ?>
 				</table>
@@ -51,147 +42,7 @@ td,th{ white-space:nowrap;text-overflow:ellipsis; overflow:hidden;max-width:100p
 			</div>
 		</div>
 
-		<!-- <div class="col-md-6">
-			<div class="panel panel-default">
-			  <div class="panel-heading">种子</div>
-			  <div class="panel-body">
-			    <table class="table">
-					<tr>
-						<th>标题</th>
-						<th>分享时间</th>
-					</tr>
-					<?php foreach($torrents as $i):?>
-						<tr>
-							<td><a target="_blank" href="<?php echo $i['link']?>"><?php echo $i['title']?></a></td>
-							<td><?php echo timeago($i['feed_time']) ?></td>
-						</tr>
-					<?php endforeach; ?>
-				</table>
-			  </div>
-			</div>
-		</div>
-
-		<div class="col-md-6">
-			<div class="panel panel-default">
-			  <div class="panel-heading">文档/电子书</div>
-			  <div class="panel-body">
-			    <table class="table">
-					<tr>
-						<th>标题</th>
-						<th>分享时间</th>
-					</tr>
-					<?php foreach($documents as $i):?>
-						<tr>
-							<td><a target="_blank" href="<?php echo $i['link']?>"><?php echo $i['title']?></a></td>
-							<td><?php echo timeago($i['feed_time']) ?></td>
-						</tr>
-					<?php endforeach; ?>
-				</table>
-			  </div>
-			</div>
-		</div>
-
-		<div class="col-md-6">
-			<div class="panel panel-default">
-			  <div class="panel-heading">音乐</div>
-			  <div class="panel-body">
-			    <table class="table">
-					<tr>
-						<th>标题</th>
-						<th>分享时间</th>
-					</tr>
-					<?php foreach($musics as $i):?>
-						<tr>
-							<td><a target="_blank" href="<?php echo $i['link']?>"><?php echo $i['title']?></a></td>
-							<td><?php echo timeago($i['feed_time']) ?></td>
-						</tr>
-					<?php endforeach; ?>
-				</table>
-			  </div>
-			</div>
-		</div> -->
-
-		<!-- <div class="col-md-6">
-			<div class="panel panel-default">
-				<div class="panel-heading">影视</div>
-				<div class="panel-body">
-					<table class="table">
-						<tr>
-							<th>标题</th>
-							<th>分享时间</th>
-						</tr>
-						<?php foreach($dirs as $i):?>
-						<tr>
-							<td><a target="_blank" href="<?php echo $i['link']?>"><img src="<?php echo $i['cover_img']?>"><?php echo $i['title']?></a></td>
-							<td><?php echo timeago($i['feed_time']) ?></td>
-						</tr>
-						<?php endforeach; ?>
-					</table>
-				 </div>
-			</div>
-		</div> -->
-
-		<!-- <div class="col-md-6">
-			<div class="panel panel-default">
-			  <div class="panel-heading">专辑</div>
-			  <div class="panel-body">
-			    <table class="table">
-					<tr>
-						<th>标题</th>
-						<th>分享时间</th>
-					</tr>
-					<?php foreach($ambs as $i):?>
-						<tr>
-							<td><a target="_blank" href="<?php echo $i['link']?>"><?php echo $i['title']?></a></td>
-							<td><?php echo timeago($i['feed_time']) ?></td>
-						</tr>
-					<?php endforeach; ?>
-				</table>
-			  </div>
-			</div>
-		</div>
-
-		<div class="col-md-6">
-			<div class="panel panel-default">
-			  <div class="panel-heading">压缩包</div>
-			  <div class="panel-body">
-			    <table class="table">
-					<tr>
-						<th>标题</th>
-						<th>分享时间</th>
-					</tr>
-					<?php foreach($packages as $i):?>
-						<tr>
-							<td><a target="_blank" href="<?php echo $i['link']?>"><?php echo $i['title']?></a></td>
-							<td><?php echo timeago($i['feed_time']) ?></td>
-						</tr>
-					<?php endforeach; ?>
-				</table>
-			  </div>
-			</div>
-		</div>
-
-		<div class="col-md-6">
-			<div class="panel panel-default">
-			  <div class="panel-heading">软件</div>
-			  <div class="panel-body">
-			    <table class="table">
-					<tr>
-						<th>标题</th>
-						<th>分享时间</th>
-					</tr>
-					<?php foreach($software as $i):?>
-						<tr>
-							<td><a target="_blank" href="<?php echo $i['link']?>"><?php echo $i['title']?></a></td>
-							<td><?php echo timeago($i['feed_time']) ?></td>
-						</tr>
-					<?php endforeach; ?>
-				</table>
-			  </div>
-			</div>
-		</div> -->
-
-	</div><!--/row-->
+	</div>
 </div>
 <?php
 load_template('public/js');

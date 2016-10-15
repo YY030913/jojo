@@ -7,7 +7,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |--------------------------------------------------------------------------
 |
 */
-$config['site_title']        =  '爱百应 - 百度云盘搜索';
+$config['site_title']        =  '谁是百度 - 百度云盘搜索';
 $config['sub_title']         =  '找资源必备神器';
 $config['key_words']         =  '百度云搜索,搜索,网盘搜索,电影下载,视频下载,动漫,BT种子,软件下载,小说下载,视频教程下载';
 $config['site_description']  =  '百度云盘搜索引擎，海量资源免费下载。内容包括:视频下载,软件下载,电影下载,小说下载,视频教程,动漫,BT种子下载等';

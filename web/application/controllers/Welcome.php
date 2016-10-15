@@ -76,6 +76,39 @@ class Welcome extends CI_Controller {
 
 		$data['page'] = $this->pager->GetPagerContent();
     	
+    	$title = "";
+    	foreach ($data['videos'] as $key => $value) {
+    		$temp = $value['title'];
+    		
+    		if(stripos($temp, "》")){
+    			$temp = substr($temp, intval(stripos($temp, "《")+3), intval(stripos($temp, "》")-3));
+    		}
+    		if(stripos($temp, "】")){
+    			$temp = substr($temp, intval(stripos($temp, "】")+3));
+    		}
+    		if(stripos($temp, "（")){
+    			$temp = substr($temp, 0, intval(stripos($temp, "（")));
+    		}
+    		if(stripos($temp, "：")){
+    			$temp = substr($temp, 0, intval(stripos($temp, "：")-1));
+    		}
+    		if(stripos($temp, ">")){
+    			$temp = substr($temp, intval(stripos($temp, ">")));
+    		}
+    		if(stripos($temp, ")")){
+    			$temp = substr($temp, intval(stripos($temp, ")")));
+    		}
+    		if(stripos($temp, ".")){
+    			$temp = substr($temp, 0, intval(stripos($temp, ".")));
+    		}
+    		if(stripos($temp, " ")){
+    			$temp = substr($temp, 0, intval(stripos($temp, " ")));
+    		}
+    		
+    		
+    		$title = $title.$temp."|";
+    	}
+    	$data['title'] = substr($title, 0, strlen($title)-1);
     	load_template('index',$data);
 	}
 
