@@ -3,6 +3,9 @@ import urllib2,re,argparse,json,time
 import MySQLdb as mdb
 import metautils,traceback,Queue,socket
 from HTMLParser import HTMLParser
+from db.SQLiteHelper import SqliteHelper
+from config import USER_AGENTS
+import random
 import ssl
 
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -19,22 +22,49 @@ SPIDER_INTERVAL=1
 ERR_NO=0#正常
 ERR_REFUSE=1#爬虫爬取速度过快，被拒绝
 ERR_EX=2#未知错误
+proxy = None
 
 
 def getHtml(url,ref=None,reget=5):
 	try:
+		sqlHelper = SqliteHelper()
+		global proxy
+		if proxy:
+			print proxy
+		else:
+			results = sqlHelper.selectAll()
+			sqlcount = sqlHelper.selectCount()[0]
+
+			proxy=random.choice(results);
+
+			proxy_handler = urllib2.ProxyHandler({"http" : 'http://%s:%s'%(proxy[0],proxy[1])})  
+			opener = urllib2.build_opener(proxy_handler)
+			urllib2.install_opener(opener)
+
 		request = urllib2.Request(url)
-		request.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36')
+		request.add_header('User-Agent', random.choice(USER_AGENTS))
 		if ref:
 			request.add_header('Referer',ref)
-		page = urllib2.urlopen(request,timeout=10)
+		urllib2.urlopen("http://caoliao.net.cn")
+		page = urllib2.urlopen(request,timeout=30)
+
 		html = page.read()
+		follows_json=json.loads(html)
+		if follows_json['errno']==-55:
+			print "55"
+			raise Exception('I know Python!')
 	except:
 		if reget>=1:
+			ip = proxy[0]
+			port = str(proxy[1])
+			condition = "ip='"+ip+"' AND "+'port='+port
+			sqlHelper.delete(SqliteHelper.tableName,condition)
 			#如果getHtml失败，则再次尝试5次
-			print 'getHtml error,reget...%d'%(6-reget)
+			print 'getHtml error,reget...%d'%(reget)
 			time.sleep(2)
-			return getHtml(url,ref,reget-1)
+			print sqlcount
+			proxy = None
+			return getHtml(url,ref,sqlcount-1)
 		else:
 			print 'request url:'+url
 			print 'failed to fetch html'
@@ -242,6 +272,7 @@ class BaiduPanSpider(object):
 		sharelists_url='http://yun.baidu.com/pcloud/feed/getsharelist?category=0&auth_type=1&request_location=share_home&start=%d&limit=%d&query_uk=%d&channel=chunlei&clienttype=0&web=1'%(start,limit,uk)
 		ref='http://yun.baidu.com/share/home?uk=%d&view=share'%uk
 		sharelists_json=json.loads(getHtml(sharelists_url,ref))
+		
 		if(sharelists_json['errno']!=0):
 			print 'getShareLists errno:%d'%sharelists_json['errno']
 			print 'request_url:'+sharelists_url
@@ -546,7 +577,7 @@ if __name__ == "__main__":
 			result=spider.startSpider()
 			if not result:
 				print 'The spider is refused,5 mins later try again auto...'
-				time.sleep(60*5)
+				time.sleep(1)
 			else:
 				print 'one worker queue id done'
 				time.sleep(1)
