@@ -22,11 +22,12 @@ echo link_tag('static/css/style.css?v=1.0');
 var _hmt = _hmt || [];
 (function() {
   var hm = document.createElement("script");
-  hm.src = "//hm.baidu.com/hm.js?0b0403754be5d139c1b39a5f2db5ddcd";
+  hm.src = "//hm.baidu.com/hm.js?d6f2cc959fca88c3caee40f7b97e53bc";
   var s = document.getElementsByTagName("script")[0]; 
   s.parentNode.insertBefore(hm, s);
 })();
 </script>
+
 
 </head>
 <body>
