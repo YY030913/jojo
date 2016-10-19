@@ -7,65 +7,96 @@ from db.SQLiteHelper import SqliteHelper
 from config import USER_AGENTS
 import random
 import ssl
+import requests
+import socks
+import socket
+
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
-DB_HOST='127.0.0.1'
+DB_HOST='115.28.81.231'
 DB_PORT='3306'
 DB_USER='root'
 # MySQL密码
 DB_PASS='root'
 # 数据库名称
 DB_NAME='pan'
-SPIDER_INTERVAL=1
 
 ERR_NO=0#正常
 ERR_REFUSE=1#爬虫爬取速度过快，被拒绝
 ERR_EX=2#未知错误
 proxy = None
+ONLYSIXTY = True
 
+def create_connection(address, timeout=None, source_address=None):
+    sock = socks.socksocket()
+    sock.connect(address)
+    return sock
+
+
+def newIdentity():
+        socks.setdefaultproxy()
+        s= socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        s.connect(("127.0.0.1", 9051))
+        s.send('AUTHENTICATE "my_password" \r\n')
+        response = s.recv(128)
+        if response.startswith("250"):
+            s.send("SETCONF ExitNodes={in}\r\n")
+            s.send("SETCONF StrictNodes=1\r\n")
+            s.send("SIGNAL NEWNYM\r\n")
+        s.close()
+        socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, "127.0.0.1", 9050)
+        socket.socket = socks.socksocket
 
 def getHtml(url,ref=None,reget=5):
 	try:
-		sqlHelper = SqliteHelper()
-		global proxy
-		if proxy:
-			print proxy
-		else:
-			results = sqlHelper.selectAll()
-			sqlcount = sqlHelper.selectCount()[0]
 
-			proxy=random.choice(results);
+		# sqlHelper = SqliteHelper()
+		# results = sqlHelper.selectAll()
+		# sqlcount = sqlHelper.selectCount()[0]
+		
 
-			proxy_handler = urllib2.ProxyHandler({"http" : 'http://%s:%s'%(proxy[0],proxy[1])})  
-			opener = urllib2.build_opener(proxy_handler)
-			urllib2.install_opener(opener)
+		# global proxy
+		# if proxy:
+		# 	print proxy
+		# else:
+		# 	proxy=random.choice(results);
+
+			# proxy_handler = urllib2.ProxyHandler({"http" : 'http://127.0.0.1:8123'})  
+			# opener = urllib2.build_opener(proxy_handler)
+			# urllib2.install_opener(opener)
+
+		# print urllib2.urlopen("http://icanhazip.com").read()
+		# print urllib2.urlopen("http://caoliao.net.cn").read()
 
 		request = urllib2.Request(url)
+
 		request.add_header('User-Agent', random.choice(USER_AGENTS))
 		if ref:
 			request.add_header('Referer',ref)
-		urllib2.urlopen("http://caoliao.net.cn")
-		page = urllib2.urlopen(request,timeout=30)
+		
+
+		page = urllib2.urlopen(request,timeout=60)
 
 		html = page.read()
-		follows_json=json.loads(html)
-		if follows_json['errno']==-55:
-			print "55"
-			raise Exception('I know Python!')
 	except:
 		if reget>=1:
-			ip = proxy[0]
-			port = str(proxy[1])
-			condition = "ip='"+ip+"' AND "+'port='+port
-			sqlHelper.delete(SqliteHelper.tableName,condition)
+			# newIdentity()
+			# if proxy:
+			# 	ip = proxy[0]
+			# 	port = str(proxy[1])
+			# 	condition = "ip='"+ip+"' AND "+'port='+port
+			# 	sqlHelper.delete(SqliteHelper.tableName,condition)
 			#如果getHtml失败，则再次尝试5次
 			print 'getHtml error,reget...%d'%(reget)
-			time.sleep(2)
-			print sqlcount
+			waittime=random.random()*60
+			print "wait time %s"%waittime
+			time.sleep(waittime)
+			# print sqlcount
 			proxy = None
-			return getHtml(url,ref,sqlcount-1)
+			return getHtml(url,ref,reget-1)
 		else:
+			# socks.setdefaultproxy()
 			print 'request url:'+url
 			print 'failed to fetch html'
 			exit()
@@ -135,10 +166,10 @@ class Db(object):
 			else:
 				print 'reconnect mysql'
 				self.conn()
-		        if args:
-		            rs=self.dbcurr.execute(sql,args)
-		        else:
-		            rs=self.dbcurr.execute(sql)
+			if args:
+					rs=self.dbcurr.execute(sql,args)
+			else:
+				rs=self.dbcurr.execute(sql)
 		        return rs
 	
 	def commit(self):
@@ -272,7 +303,7 @@ class BaiduPanSpider(object):
 		sharelists_url='http://yun.baidu.com/pcloud/feed/getsharelist?category=0&auth_type=1&request_location=share_home&start=%d&limit=%d&query_uk=%d&channel=chunlei&clienttype=0&web=1'%(start,limit,uk)
 		ref='http://yun.baidu.com/share/home?uk=%d&view=share'%uk
 		sharelists_json=json.loads(getHtml(sharelists_url,ref))
-		
+
 		if(sharelists_json['errno']!=0):
 			print 'getShareLists errno:%d'%sharelists_json['errno']
 			print 'request_url:'+sharelists_url
@@ -372,6 +403,21 @@ class BaiduPanSpider(object):
 			self.db.commit()
 	
 	def startSpider(self):
+		# clear spider list
+		spider.db.execute('DELETE FROM spider_list')
+
+		# recreate spider list
+		fetched_users=spider.db.execute('SELECT * from share_users')
+		if fetched_users<0:
+			print 'nothing to spider,spider_list is empty'
+			return False
+		fetchall=spider.db.fetchall()
+		#将数据库中取出的待爬取的分享者，加入爬取队列
+		for item in fetchall:
+			spider.db.execute("REPLACE INTO spider_list (uk,uid,file_fetched,file_done) VALUES(%s,%s,%s,%s)",(item[2],item[0],0,0))
+			spider.db.commit()
+
+		# start query
 		if self.spider_queue.empty():
 			fetched_users=self.db.execute('SELECT * from spider_list ORDER BY weight DESC limit 0,20')
 			if fetched_users<=0:
@@ -395,20 +441,27 @@ class BaiduPanSpider(object):
 			self.got_follow_count=0
 			self.got_files_count=0
 			self.while_count=0
-		
+		time.sleep(random.random()*30)
+
 		while not self.spider_queue.empty():
 			self.while_count+=1
 			share_user=self.spider_queue.get()
 			#爬取分享者的文件列表
 			if not share_user['file_done']:
-				print '%d now spidering file ,%d  file fetched'%(share_user['uk'],share_user['file_fetched'])
+				print '%d now spidering filese ,%d  file fetched'%(share_user['uk'],share_user['file_fetched'])
 				rs=self.getShareLists(share_user['uk'],share_user['file_fetched'])
 				if not rs:
 					print 'uk:%d error to fetch files,try again later...'%share_user['uk']
 					return True
 				total_count,fetched_count,file_list=rs
+
+				print 'share user fetch count:%s'%share_user['file_fetched']
+				print 'total count:%s'%total_count
+
 				total_fetched=share_user['file_fetched']+fetched_count
+
 				print 'fetched_file_count:%d'%fetched_count
+				print 'total_count:%d'%total_count
 				if total_fetched>=total_count or total_count==0:
 					share_user['file_done']=1#该分享者所有文件爬取完成
 				if total_count==0:
@@ -432,126 +485,144 @@ class BaiduPanSpider(object):
 							time_stamp=int(time.time())
 							if file['feed_time']>(time_stamp-3600*48):
 								if file_type_i==0 or file_type_i==-1:
-									query=file['title']
-									#indexOf javascript
-									
-									bracketkinex=query.find(")")
-									if bracketkinex!=-1:
-										query=query[bracketkinex]
-									bracketkinex=query.find(">")
-									if bracketkinex!=-1:
-										query=query[bracketkinex]
-									bracketkinex=query.find("》")
-									if bracketkinex!=-1:
-										query=query[1:bracketkinex]
-									bracketkinex=query.find("】")
-									if bracketkinex!=-1:
-										query=query[1:bracketkinex]
-									bracketkinex=query.find("：")
-									if bracketkinex!=-1:
-										query=query[0:bracketkinex]
-									dotinex=query.find(".")
-									if dotinex!=-1:
-										##substr javascript
-										query=query[0:dotinex]
-									blankinex=query.find(" ")
-									if blankinex!=-1:
-										query=query[0:blankinex]
-									print query
-									follows_json=json.loads(getHtml("https://movie.douban.com/j/subject_suggest?q="+query))
-									if len(follows_json)>0:
-										if follows_json[0]['img']!=0:
-											file_cover_img = follows_json[0]['img']
-										if follows_json[0]['url']!=0:
-											douban_url = follows_json[0]['url']
-									
-									if douban_url!='':
-										opener = urllib2.urlopen(douban_url)
-										self.content = opener.read()
+									filefetch=self.db.execute('SELECT * from share_file where title=%s',(file['title']))
+									if filefetch<=0:
+										query=file['title']
+										#indexOf javascript
 										
-										parser = mtimeDataParser()
-										parser.feed(self.content.decode('utf-8'))
-										print parser.data
-										douban_score=parser.data
-										parser.close()
+										bracketkinex=query.find(")")
+										if bracketkinex!=-1:
+											query=query[bracketkinex]
+										bracketkinex=query.find(">")
+										if bracketkinex!=-1:
+											query=query[bracketkinex]
+										bracketkinex=query.find("》")
+										if bracketkinex!=-1:
+											query=query[1:bracketkinex]
+										bracketkinex=query.find("】")
+										if bracketkinex!=-1:
+											query=query[1:bracketkinex]
+										bracketkinex=query.find("：")
+										if bracketkinex!=-1:
+											query=query[0:bracketkinex]
+										dotinex=query.find(".")
+										if dotinex!=-1:
+											##substr javascript
+											query=query[0:dotinex]
+										blankinex=query.find(" ")
+										if blankinex!=-1:
+											query=query[0:blankinex]
+										print query
+										follows_json=json.loads(getHtml("https://movie.douban.com/j/subject_suggest?q="+query))
+										if len(follows_json)>0:
+											if follows_json[0]['img']!=0:
+												file_cover_img = follows_json[0]['img']
+											if follows_json[0]['url']!=0:
+												douban_url = follows_json[0]['url']
 										
+										if douban_url!='':
+											opener = urllib2.urlopen(douban_url)
+											self.content = opener.read()
+											
+											parser = mtimeDataParser()
+											parser.feed(self.content.decode('utf-8'))
+											print parser.data
+											douban_score=parser.data
+											parser.close()
 
-
-									self.db.execute(
-										"REPLACE INTO share_file (title,uk,shareid,shorturl,isdir,size,md5,ext,feed_time,create_time,file_type,uid,feed_type,cover_img,douban_url,douban_score) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-										(file['title'],file['uk'],file['shareid'],file['shorturl'],file['isdir'],
-										file['size'],file['md5'],ext,file['feed_time'],time_stamp,file_type_i,share_user['uid'],
-										file['feed_type'],file_cover_img,douban_url,douban_score)
-									)
+										self.db.execute(
+											"REPLACE INTO share_file (title,uk,shareid,shorturl,isdir,size,md5,ext,feed_time,create_time,file_type,uid,feed_type,cover_img,douban_url,douban_score) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+											(file['title'],file['uk'],file['shareid'],file['shorturl'],file['isdir'],
+											file['size'],file['md5'],ext,file['feed_time'],time_stamp,file_type_i,share_user['uid'],
+											file['feed_type'],file_cover_img,douban_url,douban_score)
+										)
+						print "file list spider finish"
 					except:
 						share_user['file_done']=0
+						print "catch except"
 						self.db.rollback()
 						traceback.print_exc()
 						return False
 					else:
+						print "update sql"
 						self.db.execute("UPDATE spider_list set file_fetched=%s,file_done=%s WHERE sid=%s",(total_fetched,share_user['file_done'],share_user['sid']))
 						self.db.execute("UPDATE share_users set fetched=%s WHERE uid=%s",(total_fetched,share_user['uid']))
 						share_user['file_fetched']=total_fetched
 						self.got_files_count+=files_count
 						self.db.commit()
 						
-			#爬取完文件后在爬取订阅列表
-			if share_user['follow_done']==0 and share_user['file_done']==1:
-				print '%d now spidering follow ,%d  follow fetched'%(share_user['uk'],share_user['follow_fetched'])
-				rs=self.getFollows(share_user['uk'],share_user['follow_fetched'])
-				if not rs:
-					print 'error to fetch follows,try again later...'
-					return
-				total_count,fetched_count,follow_list=rs
-				total_fetched=share_user['follow_fetched']+fetched_count
-				print 'fetched_follow_count:%d'%fetched_count
-				if total_fetched>=total_count or total_count==0:
-					share_user['follow_done']=1
-				if total_count==0:
-					self.db.execute("DELETE FROM spider_list WHERE sid=%s",(share_user['sid'],))
-					self.db.commit()
-				else:
-					try:
-						follow_count=0
-						for follow in follow_list:
-							follow_count+=1
-							#判断该用户是否已经在表中了
-							if self.db.execute('SELECT * FROM share_users WHERE uk=%s',(follow['follow_uk'],))>0:
-								print 'uk:%d has already in share_user table'%follow['follow_uk']
-								continue
-							time_stamp=int(time.time())
-							self.db.execute(
-								"REPLACE INTO share_users (uk,user_name,avatar_url,intro,follow_count,album_count,fens_count,pubshare_count,last_visited,create_time,weight) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-								(
-									follow['follow_uk'],follow['follow_uname'],follow['avatar_url'],follow['intro'],follow['follow_count'],
-									follow['album_count'],follow['fans_count'],follow['pubshare_count'],time_stamp,time_stamp,5
-								)
-							)
-							#将获取的新分享者加入爬取列表
-							self.db.execute("REPLACE INTO spider_list (uk,uid) VALUES(%s,%s)",(follow['follow_uk'],self.db.last_row_id()))
-					except:
-						share_user['follow_done']=0
-						self.db.rollback()
-						traceback.print_exc()
-						return False
-					else:
-						if share_user['follow_done']==1:
-							#订阅者爬取完成，该分享者的任务完成，从待爬取列表中删除
-							print 'delete follow fetched sid:%d from spider_list'%share_user['sid']
-							self.db.execute("DELETE FROM spider_list WHERE sid=%s",(share_user['sid'],))
-						else:
-							self.db.execute("UPDATE spider_list set follow_fetched=%s,follow_done=%s WHERE sid=%s",(total_fetched,share_user['follow_done'],share_user['sid']))
-						share_user['follow_fetched']=total_fetched
-						self.got_follow_count+=follow_count
-						self.db.commit()
-			#只要分享者列表没完成，说明该分享者还未爬取完，则加入工作队列，继续爬取
-			if share_user['follow_done']==0:
-				self.spider_queue.put(share_user)
 			else:
-				print '%d has done'%share_user['uk']
+				print "file done"
+				self.db.execute("DELETE FROM spider_list WHERE sid=%s",(share_user['sid'],))
+				self.db.commit()
 				del share_user
-			time.sleep(SPIDER_INTERVAL)
-		
+			#爬取完文件后在爬取订阅列表
+			# if share_user['follow_done']==0 and share_user['file_done']==1:
+			# 	print '%d now spidering follow ,%d  follow fetched'%(share_user['uk'],share_user['follow_fetched'])
+			# 	rs=self.getFollows(share_user['uk'],share_user['follow_fetched'])
+			# 	if not rs:
+			# 		print 'error to fetch follows,try again later...'
+			# 		return
+			# 	total_count,fetched_count,follow_list=rs
+			# 	total_fetched=share_user['follow_fetched']+fetched_count
+			# 	print 'fetched_follow_count:%d'%fetched_count
+			# 	if total_fetched>=total_count or total_count==0:
+			# 		share_user['follow_done']=1
+			# 	if total_count==0:
+			# 		self.db.execute("DELETE FROM spider_list WHERE sid=%s",(share_user['sid'],))
+			# 		self.db.commit()
+			# 	else:
+			# 		try:
+			# 			follow_count=0
+			# 			for follow in follow_list:
+			# 				follow_count+=1
+			# 				#判断该用户是否已经在表中了
+			# 				if self.db.execute('SELECT * FROM share_users WHERE uk=%s',(follow['follow_uk'],))>0:
+			# 					print 'uk:%d has already in share_user table'%follow['follow_uk']
+			# 					continue
+			# 				time_stamp=int(time.time())
+			# 				self.db.execute(
+			# 					"REPLACE INTO share_users (uk,user_name,avatar_url,intro,follow_count,album_count,fens_count,pubshare_count,last_visited,create_time,weight) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+			# 					(
+			# 						follow['follow_uk'],follow['follow_uname'],follow['avatar_url'],follow['intro'],follow['follow_count'],
+			# 						follow['album_count'],follow['fans_count'],follow['pubshare_count'],time_stamp,time_stamp,5
+			# 					)
+			# 				)
+			# 				#将获取的新分享者加入爬取列表
+			# 				self.db.execute("REPLACE INTO spider_list (uk,uid) VALUES(%s,%s)",(follow['follow_uk'],self.db.last_row_id()))
+			# 		except:
+			# 			share_user['follow_done']=0
+			# 			self.db.rollback()
+			# 			traceback.print_exc()
+			# 			return False
+			# 		else:
+			# 			if share_user['follow_done']==1:
+			# 				#订阅者爬取完成，该分享者的任务完成，从待爬取列表中删除
+			# 				print 'delete follow fetched sid:%d from spider_list'%share_user['sid']
+			# 				self.db.execute("DELETE FROM spider_list WHERE sid=%s",(share_user['sid'],))
+			# 			else:
+			# 				self.db.execute("UPDATE spider_list set follow_fetched=%s,follow_done=%s WHERE sid=%s",(total_fetched,share_user['follow_done'],share_user['sid']))
+			# 			share_user['follow_fetched']=total_fetched
+			# 			self.got_follow_count+=follow_count
+			# 			self.db.commit()
+			# #只要分享者列表没完成，说明该分享者还未爬取完，则加入工作队列，继续爬取
+			print self.spider_queue.empty()
+			if ONLYSIXTY:
+				print "first sixty spider over"
+				self.db.execute("DELETE FROM spider_list WHERE sid=%s",(share_user['sid'],))
+				self.db.commit()
+				del share_user
+			else:
+				if share_user['follow_done']==0:
+					self.spider_queue.put(share_user)
+				else:
+					print '%d has done'%share_user['uk']
+					del share_user
+			waittime=600*random.random()
+			print "wait time %s"%waittime
+			time.sleep(waittime)
+	
+			
 		print '-----------------Done------------------'
 		print 'while_count:%d'%self.while_count
 		print 'got_follow_count:%d'%self.got_follow_count
@@ -560,6 +631,11 @@ class BaiduPanSpider(object):
 
 	def stop(self):
 		pass
+
+
+def getaddrinfo(*args):
+  return [(socket.AF_INET, socket.SOCK_STREAM, 6, '', (args[0], args[1]))]
+
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
@@ -572,12 +648,23 @@ if __name__ == "__main__":
 	if args.seed_user:
 		spider.seedUsers()
 	else:
+
+		
 		while(1):
 			print 'start spider...'
+			# socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, "127.0.0.1", 9050)
+
+			# # patch the socket module
+			# socket.socket = socks.socksocket
+			# socket.create_connection = create_connection
+			# socket.getaddrinfo = getaddrinfo
+
 			result=spider.startSpider()
 			if not result:
-				print 'The spider is refused,5 mins later try again auto...'
-				time.sleep(1)
+				print 'The spider is refused, later try again auto...'
+				waittime=3600*random.random()
+				print "wait time %s"%waittime
+				time.sleep(waittime)
 			else:
 				print 'one worker queue id done'
 				time.sleep(1)
