@@ -5,7 +5,7 @@ import json
 
 import crawler
 import time
-
+import random
 # Gestion des parametres
 parser = argparse.ArgumentParser(description='Crawler pour la creation de site map')
 
