@@ -46,7 +46,8 @@ CREATE TABLE IF NOT EXISTS `share_file` (
   `indexed` tinyint(1) NOT NULL DEFAULT '0',
   `cover_img` varchar(256) NOT NULL,
   `douban_url` varchar(256) NOT NULL,
-  `douban_score` varchar(3) NOT NULL
+  `douban_score` varchar(3) NOT NULL,
+  `tags` varchar(128) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------

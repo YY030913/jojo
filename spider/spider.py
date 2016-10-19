@@ -10,7 +10,7 @@ import ssl
 import requests
 import socks
 import socket
-
+import jieba
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -27,6 +27,7 @@ ERR_REFUSE=1#爬虫爬取速度过快，被拒绝
 ERR_EX=2#未知错误
 proxy = None
 ONLYSIXTY = True
+tags = ["热门","奇幻","剧情","日本","最新","香港","罪案","经典","谍战","可播放","豆瓣高分","冷门佳片","华语","欧美","韩国","美国","网络","动作","喜剧","爱情","科幻","悬疑","恐怖","动画","美剧","英剧","韩剧","日剧","国产剧","港剧","日本动画","综艺"]
 
 def create_connection(address, timeout=None, source_address=None):
     sock = socks.socksocket()
@@ -417,6 +418,7 @@ class BaiduPanSpider(object):
 			spider.db.execute("REPLACE INTO spider_list (uk,uid,file_fetched,file_done) VALUES(%s,%s,%s,%s)",(item[2],item[0],0,0))
 			spider.db.commit()
 
+		
 		# start query
 		if self.spider_queue.empty():
 			fetched_users=self.db.execute('SELECT * from spider_list ORDER BY weight DESC limit 0,20')
@@ -485,35 +487,86 @@ class BaiduPanSpider(object):
 							time_stamp=int(time.time())
 							if file['feed_time']>(time_stamp-3600*48):
 								if file_type_i==0 or file_type_i==-1:
+									# seg_list = jieba.cut(file['title'], cut_all=False)# 精确模式
+									# seg_set = list(set(seg_list))
+									# for seg in seg_set:
+									# 	try:
+									# 		if tags[seg]>0:
+									# 			seg_set.remove(seg)
+									# 		else:
+									# 			print seg
+									# 	except Exception as e:
+									# 		print "excption"
+									# print("Default Mode: " + "/ ".join(seg_list))  
+									query=file['title']
+									query=query.replace(" ", "")
+									query=query.replace(" ", "")
+									query=query.replace(")", " ")
+									query=query.replace("(", " ")
+									query=query.replace(">", " ")
+									query=query.replace("<", " ")
+									query=query.replace("[", " ")
+									query=query.replace("]", " ")
+									query=query.replace("（", " ")
+									query=query.replace("）", " ")
+									query=query.replace("》", " ")
+									query=query.replace("《", " ")
+									query=query.replace("】", " ")
+									query=query.replace("【", " ")
+
+									file['tags']=''
+									query_list=query.split(" ")
+									query_list=list(set(query_list))
+									for tit in query_list:
+										print tit
+										if len(tit.strip())==0:
+											query_list.remove(tit)
+										try:
+											if tags[tit]>0:
+												if file['tags'] == '':
+													file['tags']=tit.strip()
+												else:
+													file['tags']=file['tags']+","+tit.strip()
+												query_list.remove(tit)
+										except Exception as e:
+											print "Exception"
+											continue
+										else:
+											if (tit.startswith["更至"] or tit.startswith["连载至"] or tit.startswith["更新至"]):
+												query_list.remove(tit)
+										
+									print query_list[0]
+									file['title']=query_list[0].strip()
 									filefetch=self.db.execute('SELECT * from share_file where title=%s',(file['title']))
+									if filefetch>0:
+										self.db.execute('delete from share_file where title=%s',(file['title']))
 									if filefetch<=0:
-										query=file['title']
 										#indexOf javascript
 										
-										bracketkinex=query.find(")")
-										if bracketkinex!=-1:
-											query=query[bracketkinex]
-										bracketkinex=query.find(">")
-										if bracketkinex!=-1:
-											query=query[bracketkinex]
-										bracketkinex=query.find("》")
-										if bracketkinex!=-1:
-											query=query[1:bracketkinex]
-										bracketkinex=query.find("】")
-										if bracketkinex!=-1:
-											query=query[1:bracketkinex]
-										bracketkinex=query.find("：")
-										if bracketkinex!=-1:
-											query=query[0:bracketkinex]
-										dotinex=query.find(".")
-										if dotinex!=-1:
-											##substr javascript
-											query=query[0:dotinex]
-										blankinex=query.find(" ")
-										if blankinex!=-1:
-											query=query[0:blankinex]
-										print query
-										follows_json=json.loads(getHtml("https://movie.douban.com/j/subject_suggest?q="+query))
+										# bracketkinex=query.find(")")
+										# if bracketkinex!=-1:
+										# 	query=query[bracketkinex]
+										# bracketkinex=query.find(">")
+										# if bracketkinex!=-1:
+										# 	query=query[bracketkinex]
+										# bracketkinex=query.find("》")
+										# if bracketkinex!=-1:
+										# 	query=query[1:bracketkinex]
+										# bracketkinex=query.find("】")
+										# if bracketkinex!=-1:
+										# 	query=query[1:bracketkinex]
+										# bracketkinex=query.find("：")
+										# if bracketkinex!=-1:
+										# 	query=query[0:bracketkinex]
+										# dotinex=query.find(".")
+										# if dotinex!=-1:
+										# 	##substr javascript
+										# 	query=query[0:dotinex]
+										# blankinex=query.find(" ")
+										# if blankinex!=-1:
+										# 	query=query[0:blankinex]
+										# print query
+										follows_json=json.loads(getHtml("https://movie.douban.com/j/subject_suggest?q="+file['title']))
 										if len(follows_json)>0:
 											if follows_json[0]['img']!=0:
 												file_cover_img = follows_json[0]['img']
@@ -530,12 +583,12 @@ class BaiduPanSpider(object):
 											douban_score=parser.data
 											parser.close()
 
-										self.db.execute(
-											"REPLACE INTO share_file (title,uk,shareid,shorturl,isdir,size,md5,ext,feed_time,create_time,file_type,uid,feed_type,cover_img,douban_url,douban_score) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-											(file['title'],file['uk'],file['shareid'],file['shorturl'],file['isdir'],
-											file['size'],file['md5'],ext,file['feed_time'],time_stamp,file_type_i,share_user['uid'],
-											file['feed_type'],file_cover_img,douban_url,douban_score)
-										)
+											self.db.execute(
+												"REPLACE INTO share_file (title,uk,shareid,shorturl,isdir,size,md5,ext,feed_time,create_time,file_type,uid,feed_type,cover_img,douban_url,douban_score,tags) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+												(file['title'],file['uk'],file['shareid'],file['shorturl'],file['isdir'],
+												file['size'],file['md5'],ext,file['feed_time'],time_stamp,file_type_i,share_user['uid'],
+												file['feed_type'],file_cover_img,douban_url,douban_score,file['tags'])
+											)
 						print "file list spider finish"
 					except:
 						share_user['file_done']=0
