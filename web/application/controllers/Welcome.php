@@ -111,21 +111,27 @@ class Welcome extends CI_Controller {
     	$data['title'] = substr($title, 0, strlen($title)-1);
 
 
-    	$urls = array("http://www.caoliao.net.cn")
-    	for ($i=1; $i < $data['sum']/10; $i++) { 
-    		array_push($urls, "http://www.caoliao.net.cn/?page=".$i)
+    	if (!isset($_GET['page'])) {
+    		$urls = array("http://www.caoliao.net.cn");
+    		$sum = $data['sum']/10;
+    		
+	    	for ($i=1; $i < $sum; $i++) { 
+	    		array_push($urls, "http://www.caoliao.net.cn/?page=".$i);
+	    	}
+	    	$api = 'http://data.zz.baidu.com/urls?site=www.caoliao.net.cn&token=aGo6qz6PHLusyTsf';
+			$ch = curl_init();
+			$options =  array(
+			    CURLOPT_URL => $api,
+			    CURLOPT_POST => true,
+			    CURLOPT_RETURNTRANSFER => true,
+			    CURLOPT_POSTFIELDS => implode("\n", $urls),
+			    CURLOPT_HTTPHEADER => array('Content-Type: text/plain'),
+			);
+			curl_setopt_array($ch, $options);
+			$result = curl_exec($ch);
     	}
-		$api = 'http://data.zz.baidu.com/urls?site=www.caoliao.net.cn&token=aGo6qz6PHLusyTsf';
-		$ch = curl_init();
-		$options =  array(
-		    CURLOPT_URL => $api,
-		    CURLOPT_POST => true,
-		    CURLOPT_RETURNTRANSFER => true,
-		    CURLOPT_POSTFIELDS => implode("\n", $urls),
-		    CURLOPT_HTTPHEADER => array('Content-Type: text/plain'),
-		);
-		curl_setopt_array($ch, $options);
-		$result = curl_exec($ch);
+    	
+		
 
 
     	load_template('index',$data);
