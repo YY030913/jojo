@@ -11,6 +11,7 @@ import requests
 import socks
 import socket
 import jieba
+import re
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
@@ -27,7 +28,8 @@ ERR_REFUSE=1#爬虫爬取速度过快，被拒绝
 ERR_EX=2#未知错误
 proxy = None
 ONLYSIXTY = True
-tags = ["热门","奇幻","剧情","日本","最新","香港","罪案","经典","谍战","可播放","豆瓣高分","冷门佳片","华语","欧美","韩国","美国","网络","动作","喜剧","爱情","科幻","悬疑","恐怖","动画","美剧","英剧","韩剧","日剧","国产剧","港剧","日本动画","综艺"]
+
+tags = ["热门","综艺","动漫","连载","奇幻","剧情","日本","最新","香港","罪案","经典","谍战","可播放","豆瓣高分","冷门佳片","华语","欧美","韩国","美国","网络","动作","喜剧","爱情","科幻","悬疑","恐怖","动画","美剧","英剧","韩剧","日剧","国产剧","港剧","日本动画","综艺"]
 
 def create_connection(address, timeout=None, source_address=None):
     sock = socks.socksocket()
@@ -498,8 +500,13 @@ class BaiduPanSpider(object):
 									# 	except Exception as e:
 									# 		print "excption"
 									# print("Default Mode: " + "/ ".join(seg_list))  
+									
 									query=file['title']
+									print query
+
+									query=query.replace("2016", "")
 									query=query.replace(" ", "")
+									query=re.sub(r'第\d季.*$', "", query)
 									query=query.replace(" ", "")
 									query=query.replace(")", " ")
 									query=query.replace("(", " ")
@@ -513,26 +520,25 @@ class BaiduPanSpider(object):
 									query=query.replace("《", " ")
 									query=query.replace("】", " ")
 									query=query.replace("【", " ")
+									query=query.replace(".", " ")
 
 									file['tags']=''
 									query_list=query.split(" ")
 									query_list=list(set(query_list))
 									for tit in query_list:
-										print tit
 										if len(tit.strip())==0:
 											query_list.remove(tit)
 										try:
-											if tags[tit]>0:
+											if tags[tit.strip()]>0:
 												if file['tags'] == '':
 													file['tags']=tit.strip()
 												else:
 													file['tags']=file['tags']+","+tit.strip()
 												query_list.remove(tit)
 										except Exception as e:
-											print "Exception"
 											continue
 										else:
-											if (tit.startswith["更至"] or tit.startswith["连载至"] or tit.startswith["更新至"]):
+											if (tit.startswith["更至"] or tit.startswith["连载至"] or tit.startswith["更新至"] or tit.startswith["更新"]):
 												query_list.remove(tit)
 										
 									print query_list[0]
@@ -540,7 +546,6 @@ class BaiduPanSpider(object):
 									filefetch=self.db.execute('SELECT * from share_file where title=%s',(file['title']))
 									if filefetch>0:
 										self.db.execute('delete from share_file where title=%s',(file['title']))
-									if filefetch<=0:
 										#indexOf javascript
 										
 										# bracketkinex=query.find(")")
@@ -566,29 +571,29 @@ class BaiduPanSpider(object):
 										# if blankinex!=-1:
 										# 	query=query[0:blankinex]
 										# print query
-										follows_json=json.loads(getHtml("https://movie.douban.com/j/subject_suggest?q="+file['title']))
-										if len(follows_json)>0:
-											if follows_json[0]['img']!=0:
-												file_cover_img = follows_json[0]['img']
-											if follows_json[0]['url']!=0:
-												douban_url = follows_json[0]['url']
+									follows_json=json.loads(getHtml("https://movie.douban.com/j/subject_suggest?q="+file['title']))
+									if len(follows_json)>0:
+										if follows_json[0]['img']!=0:
+											file_cover_img = follows_json[0]['img']
+										if follows_json[0]['url']!=0:
+											douban_url = follows_json[0]['url']
+									
+									if douban_url!='':
+										opener = urllib2.urlopen(douban_url)
+										self.content = opener.read()
 										
-										if douban_url!='':
-											opener = urllib2.urlopen(douban_url)
-											self.content = opener.read()
-											
-											parser = mtimeDataParser()
-											parser.feed(self.content.decode('utf-8'))
-											print parser.data
-											douban_score=parser.data
-											parser.close()
+										parser = mtimeDataParser()
+										parser.feed(self.content.decode('utf-8'))
+										print parser.data
+										douban_score=parser.data
+										parser.close()
 
-											self.db.execute(
-												"REPLACE INTO share_file (title,uk,shareid,shorturl,isdir,size,md5,ext,feed_time,create_time,file_type,uid,feed_type,cover_img,douban_url,douban_score,tags) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-												(file['title'],file['uk'],file['shareid'],file['shorturl'],file['isdir'],
-												file['size'],file['md5'],ext,file['feed_time'],time_stamp,file_type_i,share_user['uid'],
-												file['feed_type'],file_cover_img,douban_url,douban_score,file['tags'])
-											)
+										self.db.execute(
+											"REPLACE INTO share_file (title,uk,shareid,shorturl,isdir,size,md5,ext,feed_time,create_time,file_type,uid,feed_type,cover_img,douban_url,douban_score,tags) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+											(file['title'],file['uk'],file['shareid'],file['shorturl'],file['isdir'],
+											file['size'],file['md5'],ext,file['feed_time'],time_stamp,file_type_i,share_user['uid'],
+											file['feed_type'],file_cover_img,douban_url,douban_score,file['tags'])
+										)
 						print "file list spider finish"
 					except:
 						share_user['file_done']=0

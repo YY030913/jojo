@@ -77,9 +77,10 @@ class Welcome extends CI_Controller {
 		$data['page'] = $this->pager->GetPagerContent();
     	
     	$title = "";
+    	$keywords = "";
     	foreach ($data['videos'] as $key => $value) {
     		$temp = $value['title'];
-    		
+    		$keywords = $keywords+" "+$value['title'];
     		if(stripos($temp, "》")){
     			$temp = substr($temp, intval(stripos($temp, "《")+3), intval(stripos($temp, "》")-3));
     		}
@@ -109,7 +110,7 @@ class Welcome extends CI_Controller {
     		$title = $title.$temp."|";
     	}
     	$data['title'] = substr($title, 0, strlen($title)-1);
-
+		$data['keywords'] = substr($keywords, 1, strlen($keywords));
 
     	if (!isset($_GET['page'])) {
     		$urls = array("http://www.caoliao.net.cn");
