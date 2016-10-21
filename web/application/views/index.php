@@ -53,7 +53,7 @@ td,th{ white-space:nowrap;text-overflow:ellipsis; overflow:hidden;max-width:150p
 	</div>
 </div>
 <?php
-load_template('public/leftsead');
+// load_template('public/leftsead');
 load_template('public/js');
 load_template('public/footer');
 ?>
