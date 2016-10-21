@@ -3,7 +3,7 @@
 <head>
 <?php
 if(isset($title))
-  echo "<title>".htmlspecialchars($title)."谁是百度|电影资源|网盘资源|豆瓣电影评分|在线观看</title>";
+  echo "<title>".htmlspecialchars($title)."电影资源|网盘资源|豆瓣电影评分|在线观看</title>";
 else
   echo "<title>".$this->config->item('site_title')."</title>";   
 
@@ -36,18 +36,18 @@ var _hmt = _hmt || [];
 </script>
 
 <script>
-(function(){
-    var bp = document.createElement('script');
-    var curProtocol = window.location.protocol.split(':')[0];
-    if (curProtocol === 'https') {
-        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
-    }
-    else {
-        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
-    }
-    var s = document.getElementsByTagName("script")[0];
-    s.parentNode.insertBefore(bp, s);
-})();
+// (function(){
+//     var bp = document.createElement('script');
+//     var curProtocol = window.location.protocol.split(':')[0];
+//     if (curProtocol === 'https') {
+//         bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+//     }
+//     else {
+//         bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+//     }
+//     var s = document.getElementsByTagName("script")[0];
+//     s.parentNode.insertBefore(bp, s);
+// })();
 </script>
 </head>
 <body>

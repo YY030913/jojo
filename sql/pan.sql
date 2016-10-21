@@ -70,7 +70,8 @@ CREATE TABLE IF NOT EXISTS `share_users` (
   `weight` tinyint(4) NOT NULL,
   `create_time` int(11) NOT NULL,
   `visited_count` int(11) NOT NULL DEFAULT '0',
-  `fetched` int(11) NOT NULL DEFAULT '0' COMMENT '爬取到的文件数'
+  `fetched` int(11) NOT NULL DEFAULT '0' COMMENT '爬取到的文件数',
+  `follow_done` int(1) NOT NULL DEFAULT '0' COMMENT '爬取到的文件数'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------

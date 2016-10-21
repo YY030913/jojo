@@ -113,25 +113,25 @@ class Welcome extends CI_Controller {
 		$data['keywords'] = substr($keywords, 1, strlen($keywords));
 		$data['description']="最新电影在线观看，美剧，韩剧，最新资源，豆瓣电影评分，更多优质资源尽在http://caoliao.net.cn";
 
-    	if (!isset($_GET['page'])) {
-    		$urls = array("http://www.caoliao.net.cn");
-    		$sum = $data['sum']/10;
+   //  	if (!isset($_GET['page'])) {
+   //  		$urls = array("http://www.caoliao.net.cn");
+   //  		$sum = $data['sum']/10;
     		
-	    	for ($i=1; $i < $sum; $i++) { 
-	    		array_push($urls, "http://www.caoliao.net.cn/?page=".$i);
-	    	}
-	    	$api = 'http://data.zz.baidu.com/urls?site=www.caoliao.net.cn&token=aGo6qz6PHLusyTsf';
-			$ch = curl_init();
-			$options =  array(
-			    CURLOPT_URL => $api,
-			    CURLOPT_POST => true,
-			    CURLOPT_RETURNTRANSFER => true,
-			    CURLOPT_POSTFIELDS => implode("\n", $urls),
-			    CURLOPT_HTTPHEADER => array('Content-Type: text/plain'),
-			);
-			curl_setopt_array($ch, $options);
-			$result = curl_exec($ch);
-    	}
+	  //   	for ($i=1; $i < $sum; $i++) { 
+	  //   		array_push($urls, "http://www.caoliao.net.cn/?page=".$i);
+	  //   	}
+	  //   	$api = 'http://data.zz.baidu.com/urls?site=www.caoliao.net.cn&token=aGo6qz6PHLusyTsf';
+			// $ch = curl_init();
+			// $options =  array(
+			//     CURLOPT_URL => $api,
+			//     CURLOPT_POST => true,
+			//     CURLOPT_RETURNTRANSFER => true,
+			//     CURLOPT_POSTFIELDS => implode("\n", $urls),
+			//     CURLOPT_HTTPHEADER => array('Content-Type: text/plain'),
+			// );
+			// curl_setopt_array($ch, $options);
+			// $result = curl_exec($ch);
+   //  	}
     	
 		
 
