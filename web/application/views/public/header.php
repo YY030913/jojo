@@ -3,7 +3,7 @@
 <head>
 <?php
 if(isset($title))
-  echo "<title>".htmlspecialchars($title)."|网盘资源|豆瓣电影评分|在线观看</title>";
+  echo "<title>".htmlspecialchars($title)."谁是百度|电影资源|网盘资源|豆瓣电影评分|在线观看</title>";
 else
   echo "<title>".$this->config->item('site_title')."</title>";   
 
@@ -19,6 +19,12 @@ echo link_tag('static/css/style.css?v=1.0');
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=yes">
 <meta name="HandheldFriendly" content="true">
 <meta name="baidu-site-verification" content="lnrw6T2nxa" />
+<meta name="robots" content="all" />
+<meta name="author" content="肖雨" />
+<meta name="title" content="谁是百度-电影资源" />
+<meta name="google" content="all" />
+<meta name="googlebot" content="all" />
+
 <script>
 var _hmt = _hmt || [];
 (function() {

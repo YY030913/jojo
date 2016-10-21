@@ -31,7 +31,7 @@ td,th{ white-space:nowrap;text-overflow:ellipsis; overflow:hidden;max-width:150p
 					</tr>
 					<?php foreach($videos as $i):?>
 						<tr>
-							<td><a target="_blank" href="<?php echo $i['link']?>"><img src="<?php echo $i['cover_img']?>"><h1><?php echo $i['title']?></h1></a></td>
+							<td><a target="_blank" href="<?php echo $i['link']?>"><img src="<?php echo $i['cover_img']?>" alt="<?php echo $i['title']?>"><h1><?php echo $i['title']?></h1></a></td>
 							<td><?php echo timeago($i['feed_time']) ?></td>
 							<td><a arget="_blank" href="<?php echo $i['douban_url']?>"><?php echo ($i['douban_score']) ?></a></td>
 						</tr>
