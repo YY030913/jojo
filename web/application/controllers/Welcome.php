@@ -80,7 +80,7 @@ class Welcome extends CI_Controller {
     	$keywords = "";
     	foreach ($data['videos'] as $key => $value) {
     		$temp = $value['title'];
-    		$keywords = $keywords+" "+$value['title'];
+    		$keywords = $keywords." ".$value['title'];
     		if(stripos($temp, "》")){
     			$temp = substr($temp, intval(stripos($temp, "《")+3), intval(stripos($temp, "》")-3));
     		}
