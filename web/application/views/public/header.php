@@ -21,7 +21,7 @@ echo link_tag('static/css/style.css?v=1.0');
 <meta name="baidu-site-verification" content="lnrw6T2nxa" />
 <meta name="robots" content="all" />
 <meta name="author" content="肖雨" />
-<meta name="title" content="谁是百度-电影资源" />
+<meta name="title" content="百度-电影资源" />
 <meta name="google" content="all" />
 <meta name="googlebot" content="all" />
 
@@ -58,7 +58,7 @@ var _hmt = _hmt || [];
     height: 50px;
     padding: 15px 15px;
     font-size: 18px;
-    line-height: 20px;color: #fff;" href="<?php echo site_url() ?>" title="返回网盘搜索">谁是百度</a>
+    line-height: 20px;color: #fff;" href="<?php echo site_url() ?>" title="返回网盘搜索">caoliao.net.cn</a>
         <button style="height: 50px;" type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
           <span class="sr-only">Toggle navigation</span>
           <span class="icon-bar"></span>

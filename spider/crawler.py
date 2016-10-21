@@ -90,7 +90,7 @@ class Crawler():
 
 		# print (sitemapConfig.xml_footer, file=self.output_file)
 		print >> self.output_file,sitemapConfig.xml_footer
-
+		
 	def __crawling(self):
 		crawling = self.tocrawl.pop()
 

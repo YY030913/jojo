@@ -5,6 +5,12 @@ load_template('public/header',array(
 ));
 date_default_timezone_set("PRC");
 ?>
+
+<!-- <?php
+$rootdir=getcwd();
+$rootdir=substr($rootdir, 0, strripos($rootdir, "/"));
+$cmd = exec("python ".getcwd()."／spider/main.py --config ".getcwd()."/spider/config.json");
+?> -->
 <style>
 #top-search-bar{border-collapse:separate;border-spacing:2px;background:#f1f1f1;border-bottom:1px solid #e5e5e5;padding:10px 0;position:relative;}
 #logo{height:35px;width:115px;display:block;left:10px;top:20px;position:absolute;background:url(<?php echo base_url('static/img/logo-bar.png') ?>);}

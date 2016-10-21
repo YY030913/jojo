@@ -49,11 +49,11 @@ for argument in config:
 del(dict_arg['config'])
 
 crawl = crawler.Crawler(**dict_arg)
-while 1:
-	crawl.run()
-	waittime=random.random()*3600*24
-	print "wait time %s"%waittime
-	time.sleep(waittime)
+# while 1:
+crawl.run()
+	# waittime=random.random()*3600*24
+	# print "wait time %s"%waittime
+	# time.sleep(waittime)
 
 if arg.report:
 	crawl.make_report()
