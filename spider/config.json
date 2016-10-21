@@ -6,7 +6,7 @@
 				],
 	"parserobots":false,
 	"debug":true,
-	"output":"sitemap.xml",
+	"output":"../web/sitemap.xml",
 	"exclude":	[
 				"action=edit"
 				]
