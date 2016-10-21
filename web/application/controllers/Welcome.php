@@ -81,30 +81,30 @@ class Welcome extends CI_Controller {
     	foreach ($data['videos'] as $key => $value) {
     		$temp = $value['title'];
     		$keywords = $keywords." ".$value['title'];
-    		if(stripos($temp, "》")){
-    			$temp = substr($temp, intval(stripos($temp, "《")+3), intval(stripos($temp, "》")-3));
-    		}
-    		if(stripos($temp, "】")){
-    			$temp = substr($temp, intval(stripos($temp, "】")+3));
-    		}
-    		if(stripos($temp, "（")){
-    			$temp = substr($temp, 0, intval(stripos($temp, "（")));
-    		}
-    		if(stripos($temp, "：")){
-    			$temp = substr($temp, 0, intval(stripos($temp, "：")-1));
-    		}
-    		if(stripos($temp, ">")){
-    			$temp = substr($temp, intval(stripos($temp, ">")));
-    		}
-    		if(stripos($temp, ")")){
-    			$temp = substr($temp, intval(stripos($temp, ")")));
-    		}
-    		if(stripos($temp, ".")){
-    			$temp = substr($temp, 0, intval(stripos($temp, ".")));
-    		}
-    		if(stripos($temp, " ")){
-    			$temp = substr($temp, 0, intval(stripos($temp, " ")));
-    		}
+    		// if(stripos($temp, "》")){
+    		// 	$temp = substr($temp, intval(stripos($temp, "《")+3), intval(stripos($temp, "》")-3));
+    		// }
+    		// if(stripos($temp, "】")){
+    		// 	$temp = substr($temp, intval(stripos($temp, "】")+3));
+    		// }
+    		// if(stripos($temp, "（")){
+    		// 	$temp = substr($temp, 0, intval(stripos($temp, "（")));
+    		// }
+    		// if(stripos($temp, "：")){
+    		// 	$temp = substr($temp, 0, intval(stripos($temp, "：")-1));
+    		// }
+    		// if(stripos($temp, ">")){
+    		// 	$temp = substr($temp, intval(stripos($temp, ">")));
+    		// }
+    		// if(stripos($temp, ")")){
+    		// 	$temp = substr($temp, intval(stripos($temp, ")")));
+    		// }
+    		// if(stripos($temp, ".")){
+    		// 	$temp = substr($temp, 0, intval(stripos($temp, ".")));
+    		// }
+    		// if(stripos($temp, " ")){
+    		// 	$temp = substr($temp, 0, intval(stripos($temp, " ")));
+    		// }
     		
     		
     		$title = $title.$temp."|";
