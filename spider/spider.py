@@ -302,7 +302,7 @@ class BaiduPanSpider(object):
 		
 		return (total_count,count,returns)
 
-	def getShareLists(self,uk,start=0,limit=60):
+	def getShareLists(self,uk,start=0,limit=20):
 		sharelists_url='http://yun.baidu.com/pcloud/feed/getsharelist?category=0&auth_type=1&request_location=share_home&start=%d&limit=%d&query_uk=%d&channel=chunlei&clienttype=0&web=1'%(start,limit,uk)
 		ref='http://yun.baidu.com/share/home?uk=%d&view=share'%uk
 		sharelists_json=json.loads(getHtml(sharelists_url,ref))
@@ -410,14 +410,14 @@ class BaiduPanSpider(object):
 		spider.db.execute('DELETE FROM spider_list')
 
 		# recreate spider list
-		fetched_users=spider.db.execute('SELECT * from share_users')
+		fetched_users=spider.db.execute('SELECT * from share_users ORDER BY weight DESC ')
 		if fetched_users<0:
 			print 'nothing to spider,spider_list is empty'
 			return False
 		fetchall=spider.db.fetchall()
 		#将数据库中取出的待爬取的分享者，加入爬取队列
 		for item in fetchall:
-			spider.db.execute("REPLACE INTO spider_list (uk,uid,file_fetched,file_done) VALUES(%s,%s,%s,%s)",(item[2],item[0],0,0))
+			spider.db.execute("REPLACE INTO spider_list (uk,uid,file_fetched,file_done,follow_done) VALUES(%s,%s,%s,%s,%s)",(item[2],item[0],0,0,item[14]))
 			spider.db.commit()
 
 		
@@ -459,13 +459,13 @@ class BaiduPanSpider(object):
 					return True
 				total_count,fetched_count,file_list=rs
 
-				print 'share user fetch count:%s'%share_user['file_fetched']
-				print 'total count:%s'%total_count
+				# print 'share user fetch count:%s'%share_user['file_fetched']
+				# print 'total count:%s'%total_count
 
 				total_fetched=share_user['file_fetched']+fetched_count
 
-				print 'fetched_file_count:%d'%fetched_count
-				print 'total_count:%d'%total_count
+				# print 'fetched_file_count:%d'%fetched_count
+				# print 'total_count:%d'%total_count
 				if total_fetched>=total_count or total_count==0:
 					share_user['file_done']=1#该分享者所有文件爬取完成
 				if total_count==0:
@@ -502,7 +502,7 @@ class BaiduPanSpider(object):
 									# print("Default Mode: " + "/ ".join(seg_list))  
 									
 									query=file['title']
-									print query
+									# print query
 
 									query=query.replace("2016", "")
 									query=query.replace(" ", "")
@@ -541,7 +541,7 @@ class BaiduPanSpider(object):
 											if (tit.startswith["更至"] or tit.startswith["连载至"] or tit.startswith["更新至"] or tit.startswith["更新"]):
 												query_list.remove(tit)
 										
-									print query_list[0]
+									# print query_list[0]
 									file['title']=query_list[0].strip()
 									filefetch=self.db.execute('SELECT * from share_file where title=%s',(file['title']))
 									if filefetch>0:
@@ -584,7 +584,7 @@ class BaiduPanSpider(object):
 										
 										parser = mtimeDataParser()
 										parser.feed(self.content.decode('utf-8'))
-										print parser.data
+										# print parser.data
 										douban_score=parser.data
 										parser.close()
 
@@ -594,7 +594,7 @@ class BaiduPanSpider(object):
 											file['size'],file['md5'],ext,file['feed_time'],time_stamp,file_type_i,share_user['uid'],
 											file['feed_type'],file_cover_img,douban_url,douban_score,file['tags'])
 										)
-						print "file list spider finish"
+						# print "file list spider finish"
 					except:
 						share_user['file_done']=0
 						print "catch except"
@@ -602,7 +602,7 @@ class BaiduPanSpider(object):
 						traceback.print_exc()
 						return False
 					else:
-						print "update sql"
+						# print "update sql"
 						self.db.execute("UPDATE spider_list set file_fetched=%s,file_done=%s WHERE sid=%s",(total_fetched,share_user['file_done'],share_user['sid']))
 						self.db.execute("UPDATE share_users set fetched=%s WHERE uid=%s",(total_fetched,share_user['uid']))
 						share_user['file_fetched']=total_fetched
@@ -610,7 +610,7 @@ class BaiduPanSpider(object):
 						self.db.commit()
 						
 			else:
-				print "file done"
+				# print "file done"
 				self.db.execute("DELETE FROM spider_list WHERE sid=%s",(share_user['sid'],))
 				self.db.commit()
 				del share_user
@@ -623,6 +623,7 @@ class BaiduPanSpider(object):
 					return
 				total_count,fetched_count,follow_list=rs
 				total_fetched=share_user['follow_fetched']+fetched_count
+
 				print 'fetched_follow_count:%d'%fetched_count
 				# if total_fetched>=total_count or total_count==0:
 				# 	share_user['follow_done']=1
@@ -648,6 +649,7 @@ class BaiduPanSpider(object):
 							)
 							#将获取的新分享者加入爬取列表
 							self.db.execute("REPLACE INTO spider_list (uk,uid) VALUES(%s,%s)",(follow['follow_uk'],self.db.last_row_id()))
+							
 					except:
 						share_user['follow_done']=0
 						self.db.rollback()
@@ -659,6 +661,7 @@ class BaiduPanSpider(object):
 							print 'delete follow fetched sid:%d from spider_list'%share_user['sid']
 							self.db.execute("DELETE FROM spider_list WHERE sid=%s",(share_user['sid'],))
 						else:
+							self.db.execute("UPDATE share_users set follow_done=%s WHERE uid=%s",(1,share_user['uid']))
 							self.db.execute("UPDATE spider_list set follow_fetched=%s,follow_done=%s WHERE sid=%s",(total_fetched,share_user['follow_done'],share_user['sid']))
 						share_user['follow_fetched']=total_fetched
 						self.got_follow_count+=follow_count
@@ -669,12 +672,12 @@ class BaiduPanSpider(object):
 				self.db.execute("DELETE FROM spider_list WHERE sid=%s",(share_user['sid'],))
 				self.db.commit()
 				del share_user
-			else:
-				if share_user['follow_done']==0:
-					self.spider_queue.put(share_user)
-				else:
-					print '%d has done'%share_user['uk']
-					del share_user
+			# else:
+			# 	if share_user['follow_done']==0:
+			# 		self.spider_queue.put(share_user)
+			# 	else:
+			# 		print '%d has done'%share_user['uk']
+			# 		del share_user
 			waittime=60*random.random()
 			print "wait time %s"%waittime
 			time.sleep(waittime)
