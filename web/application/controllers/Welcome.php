@@ -111,6 +111,7 @@ class Welcome extends CI_Controller {
     	}
     	$data['title'] = substr($title, 0, strlen($title)-1);
 		$data['keywords'] = substr($keywords, 1, strlen($keywords));
+		$data['description']="最新电影在线观看，美剧，韩剧，最新资源，豆瓣电影评分，更多优质资源尽在http://caoliao.net.cn"
 
     	if (!isset($_GET['page'])) {
     		$urls = array("http://www.caoliao.net.cn");
