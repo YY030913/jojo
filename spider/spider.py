@@ -29,7 +29,7 @@ ERR_EX=2#未知错误
 proxy = None
 ONLYSIXTY = True
 
-tags = ["热门","综艺","动漫","连载","奇幻","剧情","日本","最新","香港","罪案","经典","谍战","可播放","豆瓣高分","冷门佳片","华语","欧美","韩国","美国","网络","动作","喜剧","爱情","科幻","悬疑","恐怖","动画","美剧","英剧","韩剧","日剧","国产剧","港剧","日本动画","综艺"]
+tags = ["热门","粤语","综艺","台湾","动漫","连载","奇幻","剧情","日本","最新","香港","罪案","经典","谍战","可播放","豆瓣高分","冷门佳片","华语","欧美","韩国","美国","网络","动作","喜剧","爱情","科幻","悬疑","恐怖","动画","美剧","英剧","韩剧","日剧","国产剧","港剧","日本动画"]
 
 def create_connection(address, timeout=None, source_address=None):
     sock = socks.socksocket()
@@ -51,24 +51,49 @@ def newIdentity():
         socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, "127.0.0.1", 9050)
         socket.socket = socks.socksocket
 
+def checkproxy():
+	sqlHelper = SqliteHelper()
+	results = sqlHelper.selectAll()
+	sqlcount = sqlHelper.selectCount()[0]
+
+	global proxy
+	if proxy:
+		print proxy
+	else:
+		proxy=random.choice(results);
+		print proxy;
+
+	print "http://%s:%s"%(proxy[0],proxy[1])
+	proxy_handler = urllib2.ProxyHandler({"http" : "http://%s:%s"%(proxy[0],proxy[1])})  
+	opener = urllib2.build_opener(proxy_handler)
+	urllib2.install_opener(opener)
+	request = urllib2.Request("http://caoliao.net.cn")
+
+	request.add_header('User-Agent', random.choice(USER_AGENTS))
+	request.add_header('Referer',"http://www.baidu.com")
+	urllib2.urlopen(request, timeout=60).read()
+	proxy_handler = urllib2.ProxyHandler({}) # Pass empty dictionary to bypass proxy  
+	opener = urllib2.build_opener(proxy)  
+	urllib2.install_opener(opener)  
+
 def getHtml(url,ref=None,reget=5):
+
+	# try:
+	# 	global proxy
+
+	# 	checkproxy()
+	# except Exception as e:
+	# 	if proxy:
+	# 		ip = proxy[0]
+	# 		port = str(proxy[1])
+	# 		condition = "ip='"+ip+"' AND "+'port='+port
+	# 		sqlHelper = SqliteHelper()
+	# 		sqlHelper.delete(SqliteHelper.tableName,condition)
+	# 		proxy = None
+	# 		if sqlHelper.selectCount()[0]>1:
+	# 			return getHtml(url,ref,reget)
+				
 	try:
-
-		# sqlHelper = SqliteHelper()
-		# results = sqlHelper.selectAll()
-		# sqlcount = sqlHelper.selectCount()[0]
-		
-
-		# global proxy
-		# if proxy:
-		# 	print proxy
-		# else:
-		# 	proxy=random.choice(results);
-
-			# proxy_handler = urllib2.ProxyHandler({"http" : 'http://127.0.0.1:8123'})  
-			# opener = urllib2.build_opener(proxy_handler)
-			# urllib2.install_opener(opener)
-
 		# print urllib2.urlopen("http://icanhazip.com").read()
 		# print urllib2.urlopen("http://caoliao.net.cn").read()
 
@@ -80,23 +105,21 @@ def getHtml(url,ref=None,reget=5):
 		
 
 		page = urllib2.urlopen(request,timeout=60)
-
+		
 		html = page.read()
+
+
 	except:
 		if reget>=1:
 			# newIdentity()
-			# if proxy:
-			# 	ip = proxy[0]
-			# 	port = str(proxy[1])
-			# 	condition = "ip='"+ip+"' AND "+'port='+port
-			# 	sqlHelper.delete(SqliteHelper.tableName,condition)
+			
 			#如果getHtml失败，则再次尝试5次
 			print 'getHtml error,reget...%d'%(reget)
 			waittime=random.random()*60
 			print "wait time %s"%waittime
 			time.sleep(waittime)
 			# print sqlcount
-			proxy = None
+			
 			return getHtml(url,ref,reget-1)
 		else:
 			# socks.setdefaultproxy()
@@ -302,7 +325,7 @@ class BaiduPanSpider(object):
 		
 		return (total_count,count,returns)
 
-	def getShareLists(self,uk,start=0,limit=20):
+	def getShareLists(self,uk,start=0,limit=60):
 		sharelists_url='http://yun.baidu.com/pcloud/feed/getsharelist?category=0&auth_type=1&request_location=share_home&start=%d&limit=%d&query_uk=%d&channel=chunlei&clienttype=0&web=1'%(start,limit,uk)
 		ref='http://yun.baidu.com/share/home?uk=%d&view=share'%uk
 		sharelists_json=json.loads(getHtml(sharelists_url,ref))
@@ -410,7 +433,7 @@ class BaiduPanSpider(object):
 		spider.db.execute('DELETE FROM spider_list')
 
 		# recreate spider list
-		fetched_users=spider.db.execute('SELECT * from share_users ORDER BY weight DESC ')
+		fetched_users=spider.db.execute('SELECT * from share_users ORDER BY uid desc')
 		if fetched_users<0:
 			print 'nothing to spider,spider_list is empty'
 			return False
@@ -421,266 +444,265 @@ class BaiduPanSpider(object):
 			spider.db.commit()
 
 		
-		# start query
-		if self.spider_queue.empty():
-			fetched_users=self.db.execute('SELECT * from spider_list ORDER BY weight DESC limit 0,20')
-			if fetched_users<=0:
-				print 'nothing to spider,spider_list is empty'
-				return False
-			self.start='start'
-			self.errno=ERR_NO
-			fetchall=self.db.fetchall()
-			#将数据库中取出的待爬取的分享者，加入爬取队列
-			for item in fetchall:
-				self.spider_queue.put({
-				'sid':item[0],
-				'uk':item[1],
-				'file_fetched':item[2],
-				'follow_fetched':item[3],
-				'follow_done':item[4],
-				'file_done':item[5],
-				'weight':item[6],
-				'uid':item[7]
-			})
-			self.got_follow_count=0
-			self.got_files_count=0
-			self.while_count=0
-		time.sleep(random.random()*30)
+			# start query
+			if self.spider_queue.empty():
+				fetched_users=self.db.execute('SELECT * from spider_list ORDER BY weight DESC limit 0,20')
+				if fetched_users<=0:
+					print 'nothing to spider,spider_list is empty'
+					return False
+				self.start='start'
+				self.errno=ERR_NO
+				fetchall=self.db.fetchall()
+				#将数据库中取出的待爬取的分享者，加入爬取队列
+				for item in fetchall:
+					self.spider_queue.put({
+					'sid':item[0],
+					'uk':item[1],
+					'file_fetched':item[2],
+					'follow_fetched':item[3],
+					'follow_done':item[4],
+					'file_done':item[5],
+					'weight':item[6],
+					'uid':item[7]
+				})
+				self.got_follow_count=0
+				self.got_files_count=0
+				self.while_count=0
+			time.sleep(random.random()*30)
 
-		while not self.spider_queue.empty():
-			self.while_count+=1
-			share_user=self.spider_queue.get()
-			#爬取分享者的文件列表
-			if not share_user['file_done']:
-				print '%d now spidering filese ,%d  file fetched'%(share_user['uk'],share_user['file_fetched'])
-				rs=self.getShareLists(share_user['uk'],share_user['file_fetched'])
-				if not rs:
-					print 'uk:%d error to fetch files,try again later...'%share_user['uk']
-					return True
-				total_count,fetched_count,file_list=rs
+			while not self.spider_queue.empty():
+				self.while_count+=1
+				share_user=self.spider_queue.get()
+				#爬取分享者的文件列表
+				if not share_user['file_done']:
+					print '%d now spidering filese ,%d  file fetched'%(share_user['uk'],share_user['file_fetched'])
+					rs=self.getShareLists(share_user['uk'],share_user['file_fetched'])
+					if not rs:
+						print 'uk:%d error to fetch files,try again later...'%share_user['uk']
+						return True
+					total_count,fetched_count,file_list=rs
 
-				# print 'share user fetch count:%s'%share_user['file_fetched']
-				# print 'total count:%s'%total_count
+					# print 'share user fetch count:%s'%share_user['file_fetched']
+					# print 'total count:%s'%total_count
 
-				total_fetched=share_user['file_fetched']+fetched_count
+					total_fetched=share_user['file_fetched']+fetched_count
 
-				# print 'fetched_file_count:%d'%fetched_count
-				# print 'total_count:%d'%total_count
-				if total_fetched>=total_count or total_count==0:
-					share_user['file_done']=1#该分享者所有文件爬取完成
-				if total_count==0:
-					self.db.execute("UPDATE spider_list set file_done=%s WHERE sid=%s",(1,share_user['sid']))
-					self.db.commit()
-				else:
-					try:
-						files_count=0
-						for file in file_list:
-							files_count+=1
-							ext=''
-							file_type=''
-							file_cover_img=''
-							douban_url=''
-							douban_score=''
-							file_type_i=-1
-							if file['isdir']==0 and file['feed_type']=='share':
-								ext = metautils.get_extension(file['title']).lower()
-								file_type = metautils.get_category(ext)
-								file_type_i=self.file_type_t[file_type]
-							time_stamp=int(time.time())
-							if file['feed_time']>(time_stamp-3600*48):
-								if file_type_i==0 or file_type_i==-1:
-									# seg_list = jieba.cut(file['title'], cut_all=False)# 精确模式
-									# seg_set = list(set(seg_list))
-									# for seg in seg_set:
-									# 	try:
-									# 		if tags[seg]>0:
-									# 			seg_set.remove(seg)
-									# 		else:
-									# 			print seg
-									# 	except Exception as e:
-									# 		print "excption"
-									# print("Default Mode: " + "/ ".join(seg_list))  
-									
-									query=file['title']
-									# print query
-
-									query=query.replace("2016", "")
-									query=query.replace(" ", "")
-									query=re.sub(r'第\d季.*$', "", query)
-									query=query.replace(" ", "")
-									query=query.replace(")", " ")
-									query=query.replace("(", " ")
-									query=query.replace(">", " ")
-									query=query.replace("<", " ")
-									query=query.replace("[", " ")
-									query=query.replace("]", " ")
-									query=query.replace("（", " ")
-									query=query.replace("）", " ")
-									query=query.replace("》", " ")
-									query=query.replace("《", " ")
-									query=query.replace("】", " ")
-									query=query.replace("【", " ")
-									query=query.replace(".", " ")
-
-									file['tags']=''
-									query_list=query.split(" ")
-									query_list=list(set(query_list))
-									for tit in query_list:
-										if len(tit.strip())==0:
-											query_list.remove(tit)
-										try:
-											if tags[tit.strip()]>0:
-												if file['tags'] == '':
-													file['tags']=tit.strip()
-												else:
-													file['tags']=file['tags']+","+tit.strip()
-												query_list.remove(tit)
-										except Exception as e:
-											continue
-										else:
-											if (tit.startswith["更至"] or tit.startswith["连载至"] or tit.startswith["更新至"] or tit.startswith["更新"]):
-												query_list.remove(tit)
-										
-									# print query_list[0]
-									file['title']=query_list[0].strip()
-									filefetch=self.db.execute('SELECT * from share_file where title=%s',(file['title']))
-									if filefetch>0:
-										self.db.execute('delete from share_file where title=%s',(file['title']))
-										#indexOf javascript
-										
-										# bracketkinex=query.find(")")
-										# if bracketkinex!=-1:
-										# 	query=query[bracketkinex]
-										# bracketkinex=query.find(">")
-										# if bracketkinex!=-1:
-										# 	query=query[bracketkinex]
-										# bracketkinex=query.find("》")
-										# if bracketkinex!=-1:
-										# 	query=query[1:bracketkinex]
-										# bracketkinex=query.find("】")
-										# if bracketkinex!=-1:
-										# 	query=query[1:bracketkinex]
-										# bracketkinex=query.find("：")
-										# if bracketkinex!=-1:
-										# 	query=query[0:bracketkinex]
-										# dotinex=query.find(".")
-										# if dotinex!=-1:
-										# 	##substr javascript
-										# 	query=query[0:dotinex]
-										# blankinex=query.find(" ")
-										# if blankinex!=-1:
-										# 	query=query[0:blankinex]
-										# print query
-									follows_json=json.loads(getHtml("https://movie.douban.com/j/subject_suggest?q="+file['title']))
-									if len(follows_json)>0:
-										if follows_json[0]['img']!=0:
-											file_cover_img = follows_json[0]['img']
-										if follows_json[0]['url']!=0:
-											douban_url = follows_json[0]['url']
-									
-									if douban_url!='':
-										opener = urllib2.urlopen(douban_url)
-										self.content = opener.read()
-										
-										parser = mtimeDataParser()
-										parser.feed(self.content.decode('utf-8'))
-										# print parser.data
-										douban_score=parser.data
-										parser.close()
-
-										self.db.execute(
-											"REPLACE INTO share_file (title,uk,shareid,shorturl,isdir,size,md5,ext,feed_time,create_time,file_type,uid,feed_type,cover_img,douban_url,douban_score,tags) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-											(file['title'],file['uk'],file['shareid'],file['shorturl'],file['isdir'],
-											file['size'],file['md5'],ext,file['feed_time'],time_stamp,file_type_i,share_user['uid'],
-											file['feed_type'],file_cover_img,douban_url,douban_score,file['tags'])
-										)
-						# print "file list spider finish"
-					except:
-						share_user['file_done']=0
-						print "catch except"
-						self.db.rollback()
-						traceback.print_exc()
-						return False
-					else:
-						# print "update sql"
-						self.db.execute("UPDATE spider_list set file_fetched=%s,file_done=%s WHERE sid=%s",(total_fetched,share_user['file_done'],share_user['sid']))
-						self.db.execute("UPDATE share_users set fetched=%s WHERE uid=%s",(total_fetched,share_user['uid']))
-						share_user['file_fetched']=total_fetched
-						self.got_files_count+=files_count
+					# print 'fetched_file_count:%d'%fetched_count
+					# print 'total_count:%d'%total_count
+					if total_fetched>=total_count or total_count==0:
+						share_user['file_done']=1#该分享者所有文件爬取完成
+					if total_count==0:
+						self.db.execute("UPDATE spider_list set file_done=%s WHERE sid=%s",(1,share_user['sid']))
 						self.db.commit()
-						
-			else:
-				# print "file done"
-				self.db.execute("DELETE FROM spider_list WHERE sid=%s",(share_user['sid'],))
-				self.db.commit()
-				del share_user
-			#爬取完文件后在爬取订阅列表
-			if share_user['follow_done']==0:# and share_user['file_done']==1:
-				print '%d now spidering follow ,%d  follow fetched'%(share_user['uk'],share_user['follow_fetched'])
-				rs=self.getFollows(share_user['uk'],share_user['follow_fetched'])
-				if not rs:
-					print 'error to fetch follows,try again later...'
-					return
-				total_count,fetched_count,follow_list=rs
-				total_fetched=share_user['follow_fetched']+fetched_count
+					else:
+						try:
+							files_count=0
+							for file in file_list:
+								files_count+=1
+								ext=''
+								file_type=''
+								file_cover_img=''
+								douban_url=''
+								douban_score=''
+								file_type_i=-1
+								if file['isdir']==0 and file['feed_type']=='share':
+									ext = metautils.get_extension(file['title']).lower()
+									file_type = metautils.get_category(ext)
+									file_type_i=self.file_type_t[file_type]
+								time_stamp=int(time.time())
+								if file['feed_time']>(time_stamp-3600*48):
+									if file_type_i==0 or file_type_i==-1:
+										# seg_list = jieba.cut(file['title'], cut_all=False)# 精确模式
+										# seg_set = list(set(seg_list))
+										# for seg in seg_set:
+										# 	try:
+										# 		if tags[seg]>0:
+										# 			seg_set.remove(seg)
+										# 		else:
+										# 			print seg
+										# 	except Exception as e:
+										# 		print "excption"
+										# print("Default Mode: " + "/ ".join(seg_list))  
+										
+										query=file['title']
+										# print query
 
-				print 'fetched_follow_count:%d'%fetched_count
-				# if total_fetched>=total_count or total_count==0:
-				# 	share_user['follow_done']=1
-				if total_count==0:
+										query=query.replace("2016", "")
+										query=query.replace(" ", "")
+										query=re.sub(r'第\d季.*$', "", query)
+										query=query.replace(" ", "")
+										query=query.replace(")", " ")
+										query=query.replace("(", " ")
+										query=query.replace(">", " ")
+										query=query.replace("<", " ")
+										query=query.replace("[", " ")
+										query=query.replace("]", " ")
+										query=query.replace("（", " ")
+										query=query.replace("）", " ")
+										query=query.replace("》", " ")
+										query=query.replace("《", " ")
+										query=query.replace("】", " ")
+										query=query.replace("【", " ")
+										query=query.replace(".", " ")
+
+										file['tags']=''
+										query_list=query.split(" ")
+										query_list=list(set(query_list))
+										for tit in query_list:
+											if len(tit.strip())==0:
+												query_list.remove(tit)
+											try:
+												if tags[tit.strip()]>0:
+													if file['tags'] == '':
+														file['tags']=tit.strip()
+													else:
+														file['tags']=file['tags']+","+tit.strip()
+													query_list.remove(tit)
+											except Exception as e:
+												continue
+											else:
+												if (tit.startswith["更至"] or tit.startswith["连载至"] or tit.startswith["更新至"] or tit.startswith["更新"]):
+													query_list.remove(tit)
+											
+										# print query_list[0]
+										file['title']=query_list[0].strip()
+										filefetch=self.db.execute('SELECT * from share_file where title=%s',(file['title']))
+										if filefetch>0:
+											self.db.execute('delete from share_file where title=%s',(file['title']))
+											#indexOf javascript
+											
+											# bracketkinex=query.find(")")
+											# if bracketkinex!=-1:
+											# 	query=query[bracketkinex]
+											# bracketkinex=query.find(">")
+											# if bracketkinex!=-1:
+											# 	query=query[bracketkinex]
+											# bracketkinex=query.find("》")
+											# if bracketkinex!=-1:
+											# 	query=query[1:bracketkinex]
+											# bracketkinex=query.find("】")
+											# if bracketkinex!=-1:
+											# 	query=query[1:bracketkinex]
+											# bracketkinex=query.find("：")
+											# if bracketkinex!=-1:
+											# 	query=query[0:bracketkinex]
+											# dotinex=query.find(".")
+											# if dotinex!=-1:
+											# 	##substr javascript
+											# 	query=query[0:dotinex]
+											# blankinex=query.find(" ")
+											# if blankinex!=-1:
+											# 	query=query[0:blankinex]
+											# print query
+										follows_json=json.loads(getHtml("https://movie.douban.com/j/subject_suggest?q="+file['title']))
+										if len(follows_json)>0:
+											if follows_json[0]['img']!=0:
+												file_cover_img = follows_json[0]['img']
+											if follows_json[0]['url']!=0:
+												douban_url = follows_json[0]['url']
+										
+										if douban_url!='':
+											opener = urllib2.urlopen(douban_url)
+											self.content = opener.read()
+											
+											parser = mtimeDataParser()
+											parser.feed(self.content.decode('utf-8'))
+											# print parser.data
+											douban_score=parser.data
+											parser.close()
+
+											self.db.execute(
+												"REPLACE INTO share_file (title,uk,shareid,shorturl,isdir,size,md5,ext,feed_time,create_time,file_type,uid,feed_type,cover_img,douban_url,douban_score,tags) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+												(file['title'],file['uk'],file['shareid'],file['shorturl'],file['isdir'],
+												file['size'],file['md5'],ext,file['feed_time'],time_stamp,file_type_i,share_user['uid'],
+												file['feed_type'],file_cover_img,douban_url,douban_score,file['tags'])
+											)
+							# print "file list spider finish"
+						except:
+							share_user['file_done']=0
+							print "catch except"
+							self.db.rollback()
+							traceback.print_exc()
+							return False
+						else:
+							# print "update sql"
+							self.db.execute("UPDATE spider_list set file_fetched=%s,file_done=%s WHERE sid=%s",(total_fetched,share_user['file_done'],share_user['sid']))
+							self.db.execute("UPDATE share_users set fetched=%s WHERE uid=%s",(total_fetched,share_user['uid']))
+							share_user['file_fetched']=total_fetched
+							self.got_files_count+=files_count
+							self.db.commit()
+							
+				else:
+					# print "file done"
 					self.db.execute("DELETE FROM spider_list WHERE sid=%s",(share_user['sid'],))
 					self.db.commit()
-				else:
-					try:
-						follow_count=0
-						for follow in follow_list:
-							follow_count+=1
-							#判断该用户是否已经在表中了
-							if self.db.execute('SELECT * FROM share_users WHERE uk=%s',(follow['follow_uk'],))>0:
-								print 'uk:%d has already in share_user table'%follow['follow_uk']
-								continue
-							time_stamp=int(time.time())
-							self.db.execute(
-								"REPLACE INTO share_users (uk,user_name,avatar_url,intro,follow_count,album_count,fens_count,pubshare_count,last_visited,create_time,weight) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-								(
-									follow['follow_uk'],follow['follow_uname'],follow['avatar_url'],follow['intro'],follow['follow_count'],
-									follow['album_count'],follow['fans_count'],follow['pubshare_count'],time_stamp,time_stamp,5
-								)
-							)
-							#将获取的新分享者加入爬取列表
-							self.db.execute("REPLACE INTO spider_list (uk,uid) VALUES(%s,%s)",(follow['follow_uk'],self.db.last_row_id()))
-							
-					except:
-						share_user['follow_done']=0
-						self.db.rollback()
-						traceback.print_exc()
-						return False
-					else:
-						if share_user['follow_done']==1:
-							#订阅者爬取完成，该分享者的任务完成，从待爬取列表中删除
-							print 'delete follow fetched sid:%d from spider_list'%share_user['sid']
-							self.db.execute("DELETE FROM spider_list WHERE sid=%s",(share_user['sid'],))
-						else:
-							self.db.execute("UPDATE share_users set follow_done=%s WHERE uid=%s",(1,share_user['uid']))
-							self.db.execute("UPDATE spider_list set follow_fetched=%s,follow_done=%s WHERE sid=%s",(total_fetched,share_user['follow_done'],share_user['sid']))
-						share_user['follow_fetched']=total_fetched
-						self.got_follow_count+=follow_count
+					del share_user
+				#爬取完文件后在爬取订阅列表
+				if share_user['follow_done']==0:# and share_user['file_done']==1:
+					print '%d now spidering follow ,%d  follow fetched'%(share_user['uk'],share_user['follow_fetched'])
+					rs=self.getFollows(share_user['uk'],share_user['follow_fetched'])
+					if not rs:
+						print 'error to fetch follows,try again later...'
+						return
+					total_count,fetched_count,follow_list=rs
+					total_fetched=share_user['follow_fetched']+fetched_count
+
+					print 'fetched_follow_count:%d'%fetched_count
+					# if total_fetched>=total_count or total_count==0:
+					# 	share_user['follow_done']=1
+					if total_count==0:
+						self.db.execute("DELETE FROM spider_list WHERE sid=%s",(share_user['sid'],))
 						self.db.commit()
-			#只要分享者列表没完成，说明该分享者还未爬取完，则加入工作队列，继续爬取
-			if ONLYSIXTY:
-				print "first sixty spider over"
-				self.db.execute("DELETE FROM spider_list WHERE sid=%s",(share_user['sid'],))
-				self.db.commit()
-				del share_user
-			# else:
-			# 	if share_user['follow_done']==0:
-			# 		self.spider_queue.put(share_user)
-			# 	else:
-			# 		print '%d has done'%share_user['uk']
-			# 		del share_user
-			waittime=60*random.random()
-			print "wait time %s"%waittime
-			time.sleep(waittime)
+					else:
+						try:
+							follow_count=0
+							for follow in follow_list:
+								follow_count+=1
+								#判断该用户是否已经在表中了
+								# if self.db.execute('SELECT * FROM share_users WHERE uk=%s',(follow['follow_uk'],))>0:
+								# 	print 'uk:%d has already in share_user table'%follow['follow_uk']
+								# 	continue
+								time_stamp=int(time.time())
+								self.db.execute(
+									"REPLACE INTO share_users (uk,user_name,avatar_url,intro,follow_count,album_count,fens_count,pubshare_count,last_visited,create_time,weight,follow_done) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+									(
+										follow['follow_uk'],follow['follow_uname'],follow['avatar_url'],follow['intro'],follow['follow_count'],
+										follow['album_count'],follow['fans_count'],follow['pubshare_count'],time_stamp,time_stamp,5,1
+									)
+								)
+								#将获取的新分享者加入爬取列表
+								self.db.execute("REPLACE INTO spider_list (uk,uid) VALUES(%s,%s)",(follow['follow_uk'],self.db.last_row_id()))
+								
+						except:
+							share_user['follow_done']=0
+							self.db.rollback()
+							traceback.print_exc()
+							return False
+						else:
+							if share_user['follow_done']==1:
+								#订阅者爬取完成，该分享者的任务完成，从待爬取列表中删除
+								print 'delete follow fetched sid:%d from spider_list'%share_user['sid']
+								self.db.execute("DELETE FROM spider_list WHERE sid=%s",(share_user['sid'],))
+							else:
+								self.db.execute("UPDATE spider_list set follow_fetched=%s,follow_done=%s WHERE sid=%s",(total_fetched,share_user['follow_done'],share_user['sid']))
+							share_user['follow_fetched']=total_fetched
+							self.got_follow_count+=follow_count
+							self.db.commit()
+				#只要分享者列表没完成，说明该分享者还未爬取完，则加入工作队列，继续爬取
+				if ONLYSIXTY:
+					print "first sixty spider over"
+					self.db.execute("DELETE FROM spider_list WHERE sid=%s",(share_user['sid'],))
+					self.db.commit()
+					del share_user
+				# else:
+				# 	if share_user['follow_done']==0:
+				# 		self.spider_queue.put(share_user)
+				# 	else:
+				# 		print '%d has done'%share_user['uk']
+				# 		del share_user
+				waittime=60*random.random()
+				print "wait time %s"%waittime
+				time.sleep(waittime)
 	
 			
 		print '-----------------Done------------------'

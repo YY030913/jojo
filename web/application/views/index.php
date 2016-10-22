@@ -24,7 +24,7 @@ td,th{ white-space:nowrap;text-overflow:ellipsis; overflow:hidden;max-width:150p
 <div class="container" style="margin-top: 30px">
 	<div class="row">
 		<div class="col-md-12">
-			<script type="text/javascript">(function(){document.write(unescape('%3Cdiv id="bdcs"%3E%3C/div%3E'));var bdcs = document.createElement('script');bdcs.type = 'text/javascript';bdcs.async = true;bdcs.src = 'http://znsv.baidu.com/customer_search/api/js?sid=7998786979103457666' + '&plate_url=' + encodeURIComponent(window.location.href) + '&t=' + Math.ceil(new Date()/3600000);var s = document.getElementsByTagName('script')[0];s.parentNode.insertBefore(bdcs, s);})();</script>
+			<!-- <script type="text/javascript">(function(){document.write(unescape('%3Cdiv id="bdcs"%3E%3C/div%3E'));var bdcs = document.createElement('script');bdcs.type = 'text/javascript';bdcs.async = true;bdcs.src = 'http://znsv.baidu.com/customer_search/api/js?sid=7998786979103457666' + '&plate_url=' + encodeURIComponent(window.location.href) + '&t=' + Math.ceil(new Date()/3600000);var s = document.getElementsByTagName('script')[0];s.parentNode.insertBefore(bdcs, s);})();</script> -->
 
 			<div class="panel panel-default">
 			  <div class="panel-heading">影视</div>
@@ -53,7 +53,7 @@ td,th{ white-space:nowrap;text-overflow:ellipsis; overflow:hidden;max-width:150p
 	</div>
 </div>
 <?php
-// load_template('public/leftsead');
+load_template('public/leftsead');
 load_template('public/js');
 load_template('public/footer');
 ?>
