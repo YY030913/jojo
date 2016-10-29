@@ -49,7 +49,11 @@ class Welcome extends CI_Controller {
 		load_template('spiderlist',$data);
 	}
 
-	public function index($page){
+	public function index(){
+		$this->page(1);
+	}
+
+	public function page($page){
 
 		$this->output->cache(0);
 		$this->load->database();
