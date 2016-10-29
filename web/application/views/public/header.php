@@ -3,7 +3,7 @@
 <head>
 <?php
 if(isset($title))
-  echo "<title>".htmlspecialchars($title)."电影资源|网盘资源|豆瓣电影评分|在线观看</title>";
+  echo "<title>".htmlspecialchars($title)."草料|电影资源|网盘资源|豆瓣电影评分|在线观看</title>";
 else
   echo "<title>".$this->config->item('site_title')."</title>";   
 
@@ -58,7 +58,7 @@ var _hmt = _hmt || [];
     height: 50px;
     padding: 15px 15px;
     font-size: 18px;
-    line-height: 20px;color: #fff;" href="<?php echo site_url() ?>" title="返回网盘搜索">caoliao.net.cn</a>
+    line-height: 20px;color: #fff;" href="<?php echo site_url() ?>" title="返回网盘搜索">草料 caoliao.net.cn</a>
         <button style="height: 50px;" type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
           <span class="sr-only">Toggle navigation</span>
           <span class="icon-bar"></span>

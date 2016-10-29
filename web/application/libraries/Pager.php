@@ -31,6 +31,8 @@ class Pager {
             die ( "pager initial error" );   
         }   
 
+        $this->pageUrlPrefix = '/page-';   
+
         $this->totalNum = $p_totalNum;   
         $this->pageIndex = $p_pageIndex;   
         $this->pageSize = $p_pageSize;   
@@ -49,27 +51,27 @@ class Pager {
     * @return String URL字符串  
     */  
   private function _getPageUrl() {   
-        $CurrentUrl = $_SERVER["REQUEST_URI"];   
-        $arrUrl     = parse_url($CurrentUrl);   
-        if(isset($arrUrl["query"])){
-          $urlQuery   = $arrUrl["query"];   
-        }
+        // $CurrentUrl = $_SERVER["REQUEST_URI"];   
+        // $arrUrl     = parse_url($CurrentUrl);   
+        // if(isset($arrUrl["query"])){
+        //   $urlQuery   = $arrUrl["query"];   
+        // }
         
 
-        if(isset($urlQuery)){   
-            $urlQuery  = preg_replace("/(^|&)page=" . $this->pageIndex."/", "", $urlQuery);   
-            $CurrentUrl = str_replace($arrUrl["query"], $urlQuery, $CurrentUrl);   
+        // if(isset($urlQuery)){   
+        //     $urlQuery  = preg_replace("/(^|&)page=" . $this->pageIndex."/", "", $urlQuery);   
+        //     $CurrentUrl = str_replace($arrUrl["query"], $urlQuery, $CurrentUrl);   
 
-            if($urlQuery){   
-                 $CurrentUrl.="&page";   
-            }   
-            else $CurrentUrl.="page";   
+        //     if($urlQuery){   
+        //          $CurrentUrl.="&page";   
+        //     }   
+        //     else $CurrentUrl.="page";   
 
-        } else {   
-            $CurrentUrl.="?page";   
-        }   
-
-    return $CurrentUrl;   
+        // } else {   
+        //     $CurrentUrl.="?page";   
+        // }   
+        // return $CurrentUrl;
+    return '/page-'.$this->pageIndex.'html';   
 
   }   
   /*  
@@ -116,9 +118,15 @@ EOD;
             $str .="<li><a href='javascript:void(0)' class='tips' title='上一页'>上一页</a></li> "."\n"."\n";   
         }else  
         {   
-            $str .="<li><a href='{$this->pageUrl}=1' class='tips' title='首页'>首页</a></li> "."\n";   
-                    $str .="<li><a href='{$this->pageUrl}=".($this->pageIndex-1)."' class='tips' title='上一页'>上一页</a></li> "."\n"."\n";   
+            // $str .="<li><a href='{$this->pageUrl}=1' class='tips' title='首页'>首页</a></li> "."\n";   
+            //         $str .="<li><a href='{$this->pageUrl}=".($this->pageIndex-1)."' class='tips' title='上一页'>上一页</a></li> "."\n"."\n";   
+
+            $str .="<li><a href='{$this->pageUrlPrefix}1.html' class='tips' title='首页'>首页</a></li> "."\n";   
+                    $str .="<li><a href='{$this->pageUrlPrefix}".($this->pageIndex-1).".html' class='tips' title='上一页'>上一页</a></li> "."\n"."\n";   
+
+            
         }   
+
 
            
 
@@ -139,7 +147,7 @@ EOD;
                        {    $currnt=" class='active'";}   
                        else  
                        {    $currnt="";    }   
-                        $str .="<li {$currnt}><a href='{$this->pageUrl}={$i} '>$i</a></li>"."\n" ;   
+                        $str .="<li {$currnt}><a href='{$this->pageUrlPrefix}{$i}".".html'>$i</a></li>"."\n" ;   
             }   
          }else                                //10页以上   
          {   if($this->pageIndex<3)  //当前页小于3   
@@ -150,14 +158,14 @@ EOD;
                            {    $currnt=" class='active'";}   
                          else  
                          {    $currnt="";    }   
-                        $str .="<li {$currnt}><a href='{$this->pageUrl}={$i} '>$i</a></li>"."\n" ;   
+                        $str .="<li {$currnt}><a href='{$this->pageUrlPrefix}{$i}".".html'>$i</a></li>"."\n" ;   
                      }   
 
                      $str.="<li><span class=\"dot\">……</span></li>"."\n";   
 
                  for($i=$this->totalPagesCount-3+1;$i<=$this->totalPagesCount;$i++)//功能1   
                  {   
-                      $str .="<li><a href='{$this->pageUrl}={$i}' >$i</a></li>"."\n" ;   
+                      $str .="<li><a href='{$this->pageUrlPrefix}{$i}".".html' >$i</a></li>"."\n" ;   
 
                  }   
              }elseif($this->pageIndex<=5)   //   5 >= 当前页 >= 3   
@@ -168,14 +176,14 @@ EOD;
                        {    $currnt=" class='active'";}   
                        else  
                        {    $currnt="";    }   
-                        $str .="<li {$currnt}><a href='{$this->pageUrl}={$i} '>$i</a></li>"."\n" ;   
+                        $str .="<li {$currnt}><a href='{$this->pageUrlPrefix}{$i}".".html '>$i</a></li>"."\n" ;   
 
                  }   
                  $str.="<li><span class=\"dot\">……</span></li>"."\n";   
 
                  for($i=$this->totalPagesCount-3+1;$i<=$this->totalPagesCount;$i++)//功能1   
                  {   
-                      $str .="<li><a href='{$this->pageUrl}={$i}' >$i</a></li>"."\n" ;   
+                      $str .="<li><a href='{$this->pageUrlPrefix}{$i}".".html' >$i</a></li>"."\n" ;   
 
                  }   
 
@@ -185,7 +193,7 @@ EOD;
 
                  for($i=1;$i<=3;$i++)   
                  {   
-                     $str .="<li><a href='{$this->pageUrl}={$i}' >$i</a></li>"."\n" ;   
+                     $str .="<li><a href='{$this->pageUrlPrefix}{$i}".".html' >$i</a></li>"."\n" ;   
                  }   
                   $str.="<li><span class=\"dot\">……</span></li>";                
                  for($i=$this->pageIndex-1 ;$i<=$this->pageIndex+1 && $i<=$this->totalPagesCount-5+1;$i++)   
@@ -194,13 +202,13 @@ EOD;
                        {    $currnt=" class='active'";}   
                        else  
                        {    $currnt="";    }   
-                        $str .="<li {$currnt}><a href='{$this->pageUrl}={$i} '>$i</a></li>"."\n" ;   
+                        $str .="<li {$currnt}><a href='{$this->pageUrlPrefix}{$i}".".html'>$i</a></li>"."\n" ;   
                  }   
                  $str.="<li><span class=\"dot\">……</span></li>";   
 
                  for($i=$this->totalPagesCount-3+1;$i<=$this->totalPagesCount;$i++)   
                  {   
-                      $str .="<li><a href='{$this->pageUrl}={$i}' >$i</a></li>"."\n" ;   
+                      $str .="<li><a href='{$this->pageUrlPrefix}{$i}".".html' >$i</a></li>"."\n" ;   
 
                  }   
              }else  
@@ -208,7 +216,7 @@ EOD;
 
                   for($i=1;$i<=3;$i++)   
                  {   
-                     $str .="<li><a href='{$this->pageUrl}={$i}' >$i</a></li>"."\n" ;   
+                     $str .="<li><a href='{$this->pageUrlPrefix}{$i}".".html' >$i</a></li>"."\n" ;   
                  }   
                   $str.="<li><span class=\"dot\">……</span></li>"."\n";   
 
@@ -218,7 +226,7 @@ EOD;
                        {    $currnt=" class='active'";}   
                        else  
                        {    $currnt="";    }   
-                        $str .="<li {$currnt}><a href='{$this->pageUrl}={$i} '>$i</a></li>"."\n" ;   
+                        $str .="<li {$currnt}><a href='{$this->pageUrlPrefix}{$i}".".html'>$i</a></li>"."\n" ;   
 
                  }   
             }          
@@ -243,8 +251,8 @@ EOD;
                
         }else  
         {   
-            $str .="\n"."<li><a href='{$this->pageUrl}=".($this->pageIndex+1)."' class='tips' title='下一页'>下一页</a></li> "."\n";   
-            $str .="<li><a href='{$this->pageUrl}={$this->totalPagesCount}' class='tips' title='末页'>末页</a></li> "."\n" ;   
+            $str .="\n"."<li><a href='{$this->pageUrlPrefix}".($this->pageIndex+1).".html' class='tips' title='下一页'>下一页</a></li> "."\n";   
+            $str .="<li><a href='{$this->pageUrlPrefix}{$this->totalPagesCount}".".html' class='tips' title='末页'>末页</a></li> "."\n" ;   
         }          
 
         $str .= "</ul>";   

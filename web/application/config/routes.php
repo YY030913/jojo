@@ -56,3 +56,4 @@ $route['index/hosts']				= 'welcome/hosts';
 $route['index/wiki_host']			= 'welcome/wiki_host';
 $route['s/(:any)']					= 'search/q/$1';
 $route['spider-list']				= 'welcome/spiderlist';
+$route['page-(\d+)\.html$'] 		= "welcome/index/?page=$1";

@@ -29,7 +29,7 @@ ERR_EX=2#未知错误
 proxy = None
 ONLYSIXTY = True
 
-tags = ["热门","粤语","综艺","台湾","动漫","连载","奇幻","剧情","日本","最新","香港","罪案","经典","谍战","可播放","豆瓣高分","冷门佳片","华语","欧美","韩国","美国","网络","动作","喜剧","爱情","科幻","悬疑","恐怖","动画","美剧","英剧","韩剧","日剧","国产剧","港剧","日本动画"]
+tags = ["独家","加拿大","TSKS","热门","英国","真人秀","分享","粤语","综艺","台湾","动漫","连载","奇幻","剧情","日本","最新","香港","罪案","经典","谍战","可播放","豆瓣高分","冷门佳片","华语","欧美","韩国","美国","网络","动作","喜剧","爱情","科幻","悬疑","恐怖","动画","美剧","英剧","韩剧","日剧","国产剧","港剧","日本动画"]
 
 def create_connection(address, timeout=None, source_address=None):
     sock = socks.socksocket()
@@ -432,6 +432,9 @@ class BaiduPanSpider(object):
 		# clear spider list
 		spider.db.execute('DELETE FROM spider_list')
 
+		fiveage=int(time.time())-3600*5*24
+		spider.db.execute('DELETE FROM share_file where feed_time < %d'%(fiveage))
+
 		# recreate spider list
 		fetched_users=spider.db.execute('SELECT * from share_users ORDER BY uid desc')
 		if fetched_users<0:
@@ -510,7 +513,7 @@ class BaiduPanSpider(object):
 									file_type = metautils.get_category(ext)
 									file_type_i=self.file_type_t[file_type]
 								time_stamp=int(time.time())
-								if file['feed_time']>(time_stamp-3600*48):
+								if file['feed_time']>(time_stamp-3600*24*5):
 									if file_type_i==0 or file_type_i==-1:
 										# seg_list = jieba.cut(file['title'], cut_all=False)# 精确模式
 										# seg_set = list(set(seg_list))
@@ -526,8 +529,37 @@ class BaiduPanSpider(object):
 										
 										query=file['title']
 										# print query
+										try:
+											if query.index("2016")>0:
+												query=query[0: query.index("2016")-1]
+										except Exception as e:
+											print "2016 e"
+										
+										try:
+											if query.index("更至")>0:
+												query=query[0: query.index("更至")-1]
+										except Exception as e:
+											print "更至 e"
+										
+										try:
+											if query.index("更新至")>0:
+												query=query[0: query.index("更新至")-1]
+										except Exception as e:
+											print "更新至 e"
 
-										query=query.replace("2016", "")
+										try:
+											if query.index("连载至")>0:
+												query=query[0: query.index("连载至")-1]
+										except Exception as e:
+											print "连载至 e"
+
+										try:
+											if query.index("更新")>0:
+												query=query[0: query.index("更新")-1]
+										except Exception as e:
+											print "更新 e"
+										
+
 										query=query.replace(" ", "")
 										query=re.sub(r'第\d季.*$', "", query)
 										query=query.replace(" ", "")
@@ -546,23 +578,40 @@ class BaiduPanSpider(object):
 										query=query.replace(".", " ")
 
 										file['tags']=''
-										query_list=query.split(" ")
+										# print "split start"
+										query_list=query.strip().split(" ")
+										# for q in query_list:
+										# 	print q
+										
 										query_list=list(set(query_list))
-										for tit in query_list:
+										global tags
+										i = 0
+										while i < len(query_list):
+											tit = query_list[i]
 											if len(tit.strip())==0:
-												query_list.remove(tit)
-											try:
-												if tags[tit.strip()]>0:
-													if file['tags'] == '':
-														file['tags']=tit.strip()
-													else:
-														file['tags']=file['tags']+","+tit.strip()
-													query_list.remove(tit)
-											except Exception as e:
-												continue
+												query_list.pop(i)
+												i -= 1
+												
+												# query_list.remove(tit)
 											else:
-												if (tit.startswith["更至"] or tit.startswith["连载至"] or tit.startswith["更新至"] or tit.startswith["更新"]):
-													query_list.remove(tit)
+												try:
+													if tags.index(tit.strip())>=0:
+														if file['tags'] == '':
+															file['tags']=tit.strip()
+														else:
+															file['tags']=file['tags']+","+tit.strip()
+														# query_list.remove(tit)
+														query_list.pop(i)
+														i -= 1
+														
+												except Exception as e:
+													print 'tags e'
+												else:
+													if ():
+														# query_list.remove(tit)
+														query_list.pop(i)
+														i -= 1
+											i += 1
 											
 										# print query_list[0]
 										file['title']=query_list[0].strip()
@@ -595,12 +644,18 @@ class BaiduPanSpider(object):
 											# 	query=query[0:blankinex]
 											# print query
 										follows_json=json.loads(getHtml("https://movie.douban.com/j/subject_suggest?q="+file['title']))
-										if len(follows_json)>0:
-											if follows_json[0]['img']!=0:
-												file_cover_img = follows_json[0]['img']
-											if follows_json[0]['url']!=0:
-												douban_url = follows_json[0]['url']
 										
+										if len(follows_json)>0:
+											i=0
+											while file_cover_img=='' and i<len(follows_json):
+												if follows_json[i]['img']!='' and follows_json[i].has_key("year") and follows_json[i]['year']=="2016":
+													file_cover_img = follows_json[i]['img']
+												if follows_json[i]['url']!='':
+													douban_url = follows_json[i]['url']
+												i += 1
+											if file_cover_img=='':
+												file_cover_img = follows_json[0]['img']
+												douban_url = follows_json[0]['url']
 										if douban_url!='':
 											opener = urllib2.urlopen(douban_url)
 											self.content = opener.read()
