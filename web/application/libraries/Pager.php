@@ -22,6 +22,7 @@ class Pager {
     private static $_instance;   
 
     public function __construct($parm) {   
+        print_r($parm);
         $p_totalNum = $parm['totalNum'];
         $p_pageIndex = $parm['pageIndex'];
         $p_pageSize = isset($parm['pageSize']) || 10;

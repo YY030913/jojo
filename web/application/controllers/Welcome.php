@@ -49,7 +49,7 @@ class Welcome extends CI_Controller {
 		load_template('spiderlist',$data);
 	}
 
-	public function index(){
+	public function index($page){
 
 		$this->output->cache(0);
 		$this->load->database();
@@ -63,7 +63,6 @@ class Welcome extends CI_Controller {
   //   	$data['software']	= $this->_getFiles(5);
   //   	$data['dirs']		= $this->_getFiles(0,1);
   //   	$data['ambs']		= $this->_getFiles(0,2);
-		$page = 0;
 		if(isset($_GET['page'])){
 			if ($_GET['page']<1) {
 				$_GET['page']=1;
@@ -72,7 +71,7 @@ class Welcome extends CI_Controller {
 		}
     	$data['videos'] = $this->_getFilesPage($page);
     	$data['sum'] = $this->_getSum();
-    	$this->load->library('Pager',array('totalNum'=>$data['sum']/10, 'pageIndex'=>intval(isset($_GET['page'])?$_GET['page']:1)));
+    	$this->load->library('Pager',array('totalNum'=>$data['sum']/10, 'pageIndex'=>intval($page)));
 
 		$data['page'] = $this->pager->GetPagerContent();
     	
