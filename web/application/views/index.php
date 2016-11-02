@@ -21,6 +21,15 @@ body{font-family: arial,sans-serif;}
 #search-bar a{padding:5px 10px;margin-right:5px;}
 td,th{ white-space:nowrap;text-overflow:ellipsis; overflow:hidden;max-width:150px}
 </style>
+<div class="row" style="margin-top: 30px">
+    <div class="col-md-6 col-md-offset-3">   
+		<div class="input-group col-xs-12">
+	        <?php load_template('public/search-form','type=all'); ?>
+		</div>
+    </div>
+</div>
+
+
 <div class="container" style="margin-top: 30px">
 	<div class="row">
 		<div class="col-md-12">

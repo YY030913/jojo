@@ -46,9 +46,9 @@ class Search extends CI_Controller {
 	}
 
 	public function q($kw = '') {
-
 		$kw=urldecode_base64($kw);
-		$this->_search($kw);
+		$this->local_search($kw);
+		// $this->_search($kw);
 	}
 
 	#搜索历史记录
@@ -134,6 +134,36 @@ class Search extends CI_Controller {
 	        return false; 
 	    } 
 	} 
+
+	private function local_search($kw='', $type='', $order='') {
+		$kw=trim($kw);
+		$type=trim($type);
+		$this->type = $type == '' ? $this->input->get('type',true) : $type;
+		$this->order = $order == '' ? $this->input->get('order',true) : $order;
+
+		$this->load->database();
+    	$order = 'order by feed_time desc';
+    	$keyword = $kw == '' ? $this->input->get('q') : $kw;
+
+    	$files=$this->db->query("select * from share_file where title like '%$keyword%' $order");
+    	$results = $files->result_array();
+    	$time_start=microtime();
+    	$time_end=microtime();
+    	$time_used=$time_end-$time_start;
+
+    	$found_rows	=$files->num_rows();
+
+    	$data = array(
+			// 'pager' 	=> $pager,
+			'found' 	=> $found_rows,
+			'key_word'	=> $keyword,
+			'results' 	=> $results,
+			'type' 		=> $this->type,
+			'order' 	=> $this->order,
+			'time_used' => $time_used
+		);
+		load_template('search/result', $data);
+	}
 
 	private function _search($kw='', $type='', $order=''){
 

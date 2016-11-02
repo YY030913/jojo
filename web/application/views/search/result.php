@@ -52,21 +52,21 @@ background-position:-421px -83px;
 .icon-16-android{background-position:-389px -83px;}
 .icon-16-pdf{background-position:-70px -83px;}
 </style>
-<div id="top-search-bar">
-	<a id="logo" href="/" title="返回网盘搜索"></a>
+<div id="top-search-bar" style="margin-top: 30px">
+	<!-- <a id="logo" href="/" title="返回网盘搜索"></a> -->
     <div class="container">
     	<div class="row">
         	<div class="col-lg-7">
               <?php load_template('public/search-form-result',array('keyword'=>$key_word)) ?>
-          </div><!-- /.col-lg-6 -->  
+          </div>
         </div>
     </div>
 </div>
-<?php load_template('public/search-bar', array('keyword'=>$key_word)) ?>
+<!--  <?php load_template('public/search-bar', array('keyword'=>$key_word)) ?> -->
 <div class="container">
   <div class="row">	
     <div id="main" class="col-md-6">
-        <div class="filter">
+       <!--  <div class="filter">
           <ul>
             <li>
               <span class="label">类型：</span>
@@ -80,19 +80,19 @@ background-position:-421px -83px;
               <a id="type-dir" href="/search?q=<?php echo urlencode("$key_word")."&ord=$order&type=dir" ?>" class="label">文件夹</a>
               <a id="type-abm" href="/search?q=<?php echo urlencode("$key_word")."&ord=$order&type=abm" ?>" class="label">专辑</a>
             </li>
-            <!--
+            
             <li>
               <span class="label">排序：</a>
               <a href="/search?q={$key_word|urlencode}&type={$type}&ord=time" class="label">最近分享</a>
               <a href="/search?q={$key_word|urlencode}&type={$type}&ord=cdown" class="label">下载量</a>
             </li>
-          -->
+          
           </ul>
-        </div>
-        <div id="tip">
+        </div> -->
+        <!-- <div id="tip">
             找到约 <?php echo $found?> 条结果<nobr> （用时 <?php echo $time_used?>秒）&nbsp;</nobr>
             <a style="float:right" href="http://www.ibying.com/search?q=<?php echo urlencode("$key_word")."&type=pan"?>">使用深度搜索</a>
-        </div>
+        </div> -->
         <style type="text/css">
               .search-tip{margin-top:20px;line-height:200%;}
               .search-tip b{color:#f00}
@@ -113,22 +113,22 @@ background-position:-421px -83px;
             <?php foreach($results as $i):?>
               <li class="g">
                 <h3>
-                  <span class="icon icon-16 <?php echo $i['icon']?>"></span>
-                  <a target="_blank" href="<?php echo $i['link']?>"><?php echo $i['title']?></a>
+                  <!-- <span class="icon icon-16 <?php echo $i['icon']?>"></span> -->
+                  <a target="_blank" href="http://pan.baidu.com/s/<?php echo $i['shorturl']?>"><?php echo $i['title']?></a>
                 </h3>
                 <p>
-                  <span class="attr">分享时间：<?php echo $i['feed_time']?></span>
+                  <span class="attr">分享时间：<?php echo timeago($i['feed_time']) ?></span>
                   <?php if ($i['isdir']==0):?>
                     <span class="attr">大小：<?php echo $i['size']?></span>
                   <?php endif;?>
-                  <?php if ($i['d_cnt'] > 0):?>
+                  <!-- <?php if ($i['d_cnt'] > 0):?>
                     <span class="attr">下载：<?php echo $i['d_cnt']?>次</span>
-                  <?php endif;?>
+                  <?php endif;?> -->
                 </p>
               </li>
             <?php endforeach;?>
           </ul>
-          <?php echo $pager?>
+          <!-- <?php echo $pager?> -->
         <?php endif;?>
     </div>
     <br/>
