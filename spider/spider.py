@@ -15,7 +15,7 @@ import re
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
-DB_HOST='115.28.81.231'
+DB_HOST='127.0.0.1'
 DB_PORT='3306'
 DB_USER='root'
 # MySQL密码
@@ -615,9 +615,10 @@ class BaiduPanSpider(object):
 											
 										# print query_list[0]
 										file['title']=query_list[0].strip()
-										filefetch=self.db.execute('SELECT * from share_file where title=%s',(file['title']))
+
+										filefetch=self.db.execute('SELECT * from share_file where title=%s', (file['title'],))
 										if filefetch>0:
-											self.db.execute('delete from share_file where title=%s',(file['title']))
+											self.db.execute('delete from share_file where title=%s', (file['title'],))
 											#indexOf javascript
 											
 											# bracketkinex=query.find(")")
@@ -717,16 +718,19 @@ class BaiduPanSpider(object):
 								# if self.db.execute('SELECT * FROM share_users WHERE uk=%s',(follow['follow_uk'],))>0:
 								# 	print 'uk:%d has already in share_user table'%follow['follow_uk']
 								# 	continue
-								time_stamp=int(time.time())
-								self.db.execute(
-									"REPLACE INTO share_users (uk,user_name,avatar_url,intro,follow_count,album_count,fens_count,pubshare_count,last_visited,create_time,weight,follow_done) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-									(
-										follow['follow_uk'],follow['follow_uname'],follow['avatar_url'],follow['intro'],follow['follow_count'],
-										follow['album_count'],follow['fans_count'],follow['pubshare_count'],time_stamp,time_stamp,5,1
+								fetched_user=spider.db.execute('SELECT * from share_users where uk=%s',(follow['follow_uk'],))
+								if fetched_user<=0 :
+									
+									time_stamp=int(time.time())
+									self.db.execute(
+										"REPLACE INTO share_users (uk,user_name,avatar_url,intro,follow_count,album_count,fens_count,pubshare_count,last_visited,create_time,weight,follow_done) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+										(
+											follow['follow_uk'],follow['follow_uname'],follow['avatar_url'],follow['intro'],follow['follow_count'],
+											follow['album_count'],follow['fans_count'],follow['pubshare_count'],time_stamp,time_stamp,5,1
+										)
 									)
-								)
-								#将获取的新分享者加入爬取列表
-								self.db.execute("REPLACE INTO spider_list (uk,uid) VALUES(%s,%s)",(follow['follow_uk'],self.db.last_row_id()))
+									#将获取的新分享者加入爬取列表
+									self.db.execute("REPLACE INTO spider_list (uk,uid) VALUES(%s,%s)",(follow['follow_uk'],self.db.last_row_id()))
 								
 						except:
 							share_user['follow_done']=0
